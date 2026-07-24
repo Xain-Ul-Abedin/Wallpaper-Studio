@@ -238,13 +238,11 @@ export default function App() {
     const nextPat = Math.floor(Math.random() * PATTERNS.length);
     const nextPal = Math.floor(Math.random() * (PALETTES.length + customPalettes.length));
     const nextInverted = Math.random() > 0.5;
-    const nextTheme = Math.random() > 0.5;
 
     setCurrentPattern(nextPat);
     setPaletteIdx(nextPal);
     setIsInverted(nextInverted);
-    setIsLightTheme(nextTheme);
-    showToast("Complete layout randomized!");
+    showToast("Pattern, palette & mode randomized!");
   };
 
   const applyWallpaper = async () => {

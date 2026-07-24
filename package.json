@@ -14,18 +14,20 @@
       "output": "dist"
     },
     "win": {
-      "target": "nsis"
+      "target": "nsis",
+      "artifactName": "WallpaperStudio-Setup-${version}.${ext}"
     },
     "mac": {
       "target": "dmg",
-      "category": "public.app-category.graphics-design"
+      "category": "public.app-category.graphics-design",
+      "artifactName": "WallpaperStudio-${version}.${ext}"
     },
     "linux": {
       "target": [
-        "deb",
-        "AppImage"
+        "deb"
       ],
-      "category": "Graphics"
+      "category": "Graphics",
+      "artifactName": "WallpaperStudio-${version}.${ext}"
     }
   },
   "keywords": [

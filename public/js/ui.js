@@ -1187,9 +1187,34 @@ function setupCtaScroll() {
   }
 }
 
+function checkDesktopRouting() {
+  const isDesktop = window.electronAPI && window.electronAPI.isNativeDesktop;
+  if (isDesktop) {
+    // Hide main landing-page navigation container
+    const navPillGroup = document.querySelector('.nav-pill-group');
+    if (navPillGroup) {
+      navPillGroup.style.display = 'none';
+    }
+
+    // Set Workspace View active directly
+    const productView = document.getElementById('viewProduct');
+    const studioView = document.getElementById('viewStudio');
+    const studioBtn = document.getElementById('navStudioBtn');
+
+    if (productView && studioView) {
+      productView.classList.remove('active');
+      studioView.classList.add('active');
+      if (studioBtn) {
+        studioBtn.classList.add('active');
+      }
+    }
+  }
+}
+
 // INITIALIZATION
 setInverted(true);
 setupViewNavigation();
+checkDesktopRouting();
 setupComparisonSlider();
 setupFaqAccordion();
 setupHomeFilterBar();

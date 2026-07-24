@@ -1192,14 +1192,15 @@ buildPaletteRow();
 buildGalleryCategories();
 scheduleRender();
 
-// FADE OUT STARTUP LOADER ONCE EVERYTHING IS RENDERED AND STYLED
-window.addEventListener('load', () => {
+// FADE OUT STARTUP LOADER ONCE EVERYTHING IS INITIALIZED AND RENDERED
+(function hideStartupLoader() {
   const startupLoader = document.getElementById('startupLoaderScreen');
   if (startupLoader) {
+    // Fade out smoothly
     startupLoader.style.opacity = '0';
     startupLoader.style.pointerEvents = 'none';
     setTimeout(() => {
       startupLoader.style.display = 'none';
     }, 500);
   }
-});
+})();

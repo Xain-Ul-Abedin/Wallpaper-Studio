@@ -12,6 +12,7 @@ function createWindow() {
     icon: path.join(__dirname, 'public/icon.ico'),
     backgroundColor: '#09090b',
     autoHideMenuBar: true,
+    show: false,
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
@@ -20,6 +21,10 @@ function createWindow() {
   });
 
   win.loadFile(path.join(__dirname, 'public/index.html'));
+
+  win.once('ready-to-show', () => {
+    win.show();
+  });
 }
 
 app.whenReady().then(() => {

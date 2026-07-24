@@ -1,0 +1,6 @@
+public/Demo_WPS.mp4
+*.mp4
+node_modules
+.git
+.github
+*.log

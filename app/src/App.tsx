@@ -78,7 +78,7 @@ function MiniCanvas({ pattern, palette, customPalettes }: MiniCanvasProps) {
   return <canvas ref={canvasRef} width={70} height={70} style={{ width: '70px', height: '70px', display: 'block', borderRadius: '4px' }} />;
 }
 
-// ── DEFERRED GALLERY CARD CANVAS COMPONENT (PREVENTS UX FREEZING) ──
+// ── DEFERRED GALLERY CARD CANVAS COMPONENT ──
 interface GalleryCardCanvasProps {
   pattern: PatternType;
   palette: Palette;
@@ -99,7 +99,7 @@ function GalleryCardCanvas({ pattern, palette, customPalettes }: GalleryCardCanv
 
       drawPattern(ctx, 280, 180, pattern, palette, 888, 100, 'crop', false, customPalettes);
       setIsLoaded(true);
-    }, Math.random() * 150 + 50); // stagger rendering loops
+    }, Math.random() * 150 + 50);
 
     return () => clearTimeout(timer);
   }, [pattern, palette, customPalettes]);
@@ -127,7 +127,60 @@ function GalleryCardCanvas({ pattern, palette, customPalettes }: GalleryCardCanv
   );
 }
 
-// ── DEFERRED FEATURED HERO CANVAS COMPONENT ──
+// ── CUSTOM CREATIONS GALLERY CANVAS COMPONENT ──
+interface CustomCreationCanvasProps {
+  pattern: PatternType;
+  palette: Palette;
+  seed: number;
+  zoomLevel: number;
+  fitMode: 'crop' | 'fit';
+  isInverted: boolean;
+  customPalettes: Palette[];
+}
+
+function CustomCreationCanvas({ pattern, palette, seed, zoomLevel, fitMode, isInverted, customPalettes }: CustomCreationCanvasProps) {
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const [isLoaded, setIsLoaded] = useState<boolean>(false);
+
+  useEffect(() => {
+    setIsLoaded(false);
+    const timer = setTimeout(() => {
+      const canvas = canvasRef.current;
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return;
+
+      drawPattern(ctx, 280, 180, pattern, palette, seed, zoomLevel, fitMode, isInverted, customPalettes);
+      setIsLoaded(true);
+    }, Math.random() * 150 + 50);
+
+    return () => clearTimeout(timer);
+  }, [pattern, palette, seed, zoomLevel, fitMode, isInverted, customPalettes]);
+
+  return (
+    <div style={{ position: 'relative', width: '100%', height: '180px', background: 'var(--hover-bg)', borderRadius: '12px 12px 0 0', overflow: 'hidden' }}>
+      {!isLoaded && (
+        <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div className="startup-spinner" style={{ width: '24px', height: '24px', borderWidth: '2px' }}></div>
+        </div>
+      )}
+      <canvas
+        ref={canvasRef}
+        width={280}
+        height={180}
+        style={{
+          width: '100%',
+          height: '180px',
+          display: 'block',
+          opacity: isLoaded ? 1 : 0,
+          transition: 'opacity 0.3s ease'
+        }}
+      />
+    </div>
+  );
+}
+
+// ── FEATURED HERO CANVAS COMPONENT (STONE LIGHT SYSTEM) ──
 interface FeaturedCanvasProps {
   palette: Palette;
   customPalettes: Palette[];
@@ -145,7 +198,8 @@ function FeaturedCanvas({ palette, customPalettes }: FeaturedCanvasProps) {
       const ctx = canvas.getContext('2d');
       if (!ctx) return;
 
-      drawPattern(ctx, 1920, 1080, 'flowing-hills', palette, 555, 100, 'crop', false, customPalettes);
+      // Stone (light version) means isInverted = true!
+      drawPattern(ctx, 1920, 1080, 'flowing-hills', palette, 555, 100, 'crop', true, customPalettes);
       setIsLoaded(true);
     }, 80);
 
@@ -153,7 +207,7 @@ function FeaturedCanvas({ palette, customPalettes }: FeaturedCanvasProps) {
   }, [palette, customPalettes]);
 
   return (
-    <div style={{ position: 'relative', width: '100%', height: '100%', background: 'var(--hover-bg)', overflow: 'hidden' }}>
+    <div style={{ position: 'relative', width: '100%', height: '100%', background: 'var(--hover-bg)', overflow: 'hidden', borderRadius: '16px' }}>
       {!isLoaded && (
         <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <div className="startup-spinner" style={{ width: '32px', height: '32px', borderWidth: '3.5px' }}></div>
@@ -176,6 +230,44 @@ function FeaturedCanvas({ palette, customPalettes }: FeaturedCanvasProps) {
   );
 }
 
+// ── STUDIO HISTORY MINI CANVAS COMPONENT ──
+interface HistoryCardCanvasProps {
+  pattern: PatternType;
+  palette: Palette;
+  seed: number;
+  zoomLevel: number;
+  fitMode: 'crop' | 'fit';
+  isInverted: boolean;
+  customPalettes: Palette[];
+}
+
+function HistoryCardCanvas({ pattern, palette, seed, zoomLevel, fitMode, isInverted, customPalettes }: HistoryCardCanvasProps) {
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    drawPattern(ctx, 120, 80, pattern, palette, seed, zoomLevel, fitMode, isInverted, customPalettes);
+  }, [pattern, palette, seed, zoomLevel, fitMode, isInverted, customPalettes]);
+
+  return <canvas ref={canvasRef} width={120} height={80} style={{ width: '120px', height: '80px', display: 'block', borderRadius: '6px' }} />;
+}
+
+// ── CUSTOM WORKSPACE STATE ITEM INTERFACE ──
+interface SavedState {
+  id: number;
+  name?: string;
+  patternIdx: number;
+  paletteIdx: number;
+  seed: number;
+  zoomLevel: number;
+  fitMode: 'crop' | 'fit';
+  isInverted: boolean;
+}
+
 // ── MAIN APPLICATION COMPONENT ──
 export default function App() {
   // ── ROUTING & PAGE TRANSITION STATE ──
@@ -196,6 +288,25 @@ export default function App() {
   const [customPalettes, setCustomPalettes] = useState<Palette[]>(() => {
     try {
       const saved = localStorage.getItem('ws_custom_palettes');
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
+
+  // ── LOCAL DATABASE STATES (HISTORY & CUSTOM CREATIONS) ──
+  const [history, setHistory] = useState<SavedState[]>(() => {
+    try {
+      const saved = localStorage.getItem('ws_workspace_history');
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
+
+  const [customCreations, setCustomCreations] = useState<SavedState[]>(() => {
+    try {
+      const saved = localStorage.getItem('ws_custom_creations');
       return saved ? JSON.parse(saved) : [];
     } catch {
       return [];
@@ -237,7 +348,7 @@ export default function App() {
     setTimeout(() => {
       setActiveTab(tab);
       setIsTransitioning(false);
-    }, 250); // smooth, fast load transition
+    }, 250);
   };
 
   const showToast = (msg: string) => {
@@ -359,17 +470,21 @@ export default function App() {
     const nextSeed = Math.floor(Math.random() * 999999);
     setSeed(nextSeed);
     showToast("Seed variation randomized!");
+    addToHistoryDirectly(currentPattern, paletteIdx, nextSeed, zoomLevel, fitMode, isInverted);
   };
 
   const runRandomizer = () => {
     const nextPat = Math.floor(Math.random() * PATTERNS.length);
     const nextPal = Math.floor(Math.random() * (PALETTES.length + customPalettes.length));
     const nextInverted = Math.random() > 0.5;
+    const nextSeed = Math.floor(Math.random() * 999999);
 
     setCurrentPattern(nextPat);
     setPaletteIdx(nextPal);
     setIsInverted(nextInverted);
+    setSeed(nextSeed);
     showToast("Pattern, palette & mode randomized!");
+    addToHistoryDirectly(nextPat, nextPal, nextSeed, zoomLevel, fitMode, nextInverted);
   };
 
   const applyWallpaper = async () => {
@@ -423,6 +538,17 @@ export default function App() {
     showToast(`Downloaded: ${fileName}`);
   };
 
+  // ── PALETTE CRUD DELETION ──
+  const deleteSelectedPalette = () => {
+    if (paletteIdx < PALETTES.length) return;
+    const indexToDelete = paletteIdx - PALETTES.length;
+    const updated = customPalettes.filter((_, idx) => idx !== indexToDelete);
+    setCustomPalettes(updated);
+    localStorage.setItem('ws_custom_palettes', JSON.stringify(updated));
+    setPaletteIdx(0); // fallback to standard Nordic Snow
+    showToast("Custom palette deleted successfully.");
+  };
+
   const saveCustomPalette = () => {
     const newPalette: Palette = {
       name: customPaletteName.trim() || `Palette ${customPalettes.length + 1}`,
@@ -435,6 +561,104 @@ export default function App() {
     setPaletteIdx(PALETTES.length + updated.length - 1);
     setIsPaletteModalActive(false);
     showToast("Custom palette added!");
+  };
+
+  // ── HISTORY ACTIONS ──
+  const addToHistoryDirectly = (pat: number, pal: number, sd: number, zoom: number, fit: 'crop' | 'fit', inverted: boolean) => {
+    const newItem: SavedState = {
+      id: Date.now(),
+      patternIdx: pat,
+      paletteIdx: pal,
+      seed: sd,
+      zoomLevel: zoom,
+      fitMode: fit,
+      isInverted: inverted
+    };
+    // Cap at 10 items
+    const updated = [newItem, ...history.slice(0, 9)];
+    setHistory(updated);
+    localStorage.setItem('ws_workspace_history', JSON.stringify(updated));
+  };
+
+  const addToHistoryCurrent = () => {
+    addToHistoryDirectly(currentPattern, paletteIdx, seed, zoomLevel, fitMode, isInverted);
+    showToast("Added current layout to recent variations!");
+  };
+
+  const loadHistoryItem = (item: SavedState) => {
+    setCurrentPattern(item.patternIdx);
+    setPaletteIdx(item.paletteIdx);
+    setSeed(item.seed);
+    setZoomLevel(item.zoomLevel);
+    setFitMode(item.fitMode);
+    setIsInverted(item.isInverted);
+    showToast("Workspace loaded from history card.");
+  };
+
+  const deleteHistoryItem = (id: number, e: React.MouseEvent) => {
+    e.stopPropagation();
+    const updated = history.filter(item => item.id !== id);
+    setHistory(updated);
+    localStorage.setItem('ws_workspace_history', JSON.stringify(updated));
+    showToast("Variation removed from history.");
+  };
+
+  // ── GALLERY ACTIONS (MY CUSTOM CREATIONS) ──
+  const addCurrentToGallery = () => {
+    const name = prompt("Enter a name for your custom wallpaper creation:", `My Creation #${customCreations.length + 1}`);
+    if (name === null) return; // cancelled
+
+    const newItem: SavedState = {
+      id: Date.now(),
+      name: name.trim() || `My Creation #${customCreations.length + 1}`,
+      patternIdx: currentPattern,
+      paletteIdx,
+      seed,
+      zoomLevel,
+      fitMode,
+      isInverted
+    };
+
+    const updated = [newItem, ...customCreations];
+    setCustomCreations(updated);
+    localStorage.setItem('ws_custom_creations', JSON.stringify(updated));
+    showToast("Wallpaper successfully added to Gallery catalog!");
+  };
+
+  const addHistoryItemToGallery = (item: SavedState, e: React.MouseEvent) => {
+    e.stopPropagation();
+    const name = prompt("Enter a name for your custom wallpaper creation:", `My Creation #${customCreations.length + 1}`);
+    if (name === null) return; // cancelled
+
+    const newItem: SavedState = {
+      ...item,
+      id: Date.now(),
+      name: name.trim() || `My Creation #${customCreations.length + 1}`
+    };
+
+    const updated = [newItem, ...customCreations];
+    setCustomCreations(updated);
+    localStorage.setItem('ws_custom_creations', JSON.stringify(updated));
+    showToast("Variation added to Gallery catalog!");
+  };
+
+  const deleteFromGallery = (id: number, e: React.MouseEvent) => {
+    e.stopPropagation();
+    const updated = customCreations.filter(item => item.id !== id);
+    setCustomCreations(updated);
+    localStorage.setItem('ws_custom_creations', JSON.stringify(updated));
+    showToast("Creation removed from gallery.");
+  };
+
+  const loadGalleryCreation = (item: SavedState) => {
+    setCurrentPattern(item.patternIdx);
+    setPaletteIdx(item.paletteIdx);
+    setSeed(item.seed);
+    setZoomLevel(item.zoomLevel);
+    setFitMode(item.fitMode);
+    setIsInverted(item.isInverted);
+    setActiveTab('studio');
+    showToast(`Loaded "${item.name}" in Studio editor.`);
   };
 
   const [dropdownOpen, setDropdownOpen] = useState<string | null>(null);
@@ -584,37 +808,95 @@ export default function App() {
         {activeTab === 'gallery' && !isTransitioning && (
           <main className="view-container active" id="viewGallery" style={{ padding: '0 0 40px 0' }}>
             
-            {/* Featured Hero Art Section (Full-Width) */}
-            <section className="featured-hero-banner" style={{ minHeight: '380px', height: '380px' }}>
-              <FeaturedCanvas palette={PALETTES[1] || PALETTES[0]} customPalettes={customPalettes} />
-              <div className="featured-overlay-content" style={{ paddingLeft: '48px', paddingRight: '48px' }}>
-                <div className="featured-tag-pill">
-                  FEATURED PIECE
-                </div>
-                <h2 className="featured-title">Flowing Hills — Charcoal</h2>
-                <p className="featured-sub">Curated Procedural Vector Art • Light Edition (16:9 4K resolution)</p>
-                
-                <div className="featured-cta-group">
-                  <button
-                    className="btn-open-in-studio"
-                    onClick={() => {
-                      setCurrentPattern(0);
-                      setPaletteIdx(1);
-                      setIsInverted(false);
-                      setActiveTab('studio');
-                    }}
-                  >
-                    <span>Customize in Studio</span>
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <polyline points="9 18 15 12 9 6"></polyline>
-                    </svg>
-                  </button>
-                </div>
-              </div>
-            </section>
-
             {/* Gallery Page Content Wrapper (with 48px lateral spacing gap) */}
             <div style={{ padding: '0 48px' }}>
+              
+              {/* Featured Hero Art Section (Stone Light version, rounded inside padding wrapper) */}
+              <section className="featured-hero-banner" style={{ minHeight: '380px', height: '380px', marginTop: '24px', borderRadius: '16px', overflow: 'hidden' }}>
+                <FeaturedCanvas palette={PALETTES[2] || PALETTES[0]} customPalettes={customPalettes} />
+                <div className="featured-overlay-content" style={{ paddingLeft: '48px', paddingRight: '48px' }}>
+                  <div className="featured-tag-pill">
+                    FEATURED PIECE
+                  </div>
+                  <h2 className="featured-title">Flowing Hills — Stone (Light)</h2>
+                  <p className="featured-sub">Curated Procedural Vector Art • Light Edition (16:9 4K resolution)</p>
+                  
+                  <div className="featured-cta-group">
+                    <button
+                      className="btn-open-in-studio"
+                      onClick={() => {
+                        setCurrentPattern(0);
+                        setPaletteIdx(2);
+                        setIsInverted(true); // Light mode wallpaper
+                        setActiveTab('studio');
+                      }}
+                    >
+                      <span>Customize in Studio</span>
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <polyline points="9 18 15 12 9 6"></polyline>
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+              </section>
+
+              {/* ── MY CUSTOM CREATIONS GALLERY SECTION ── */}
+              {customCreations.length > 0 && (
+                <section className="category-section" style={{ marginTop: '32px' }}>
+                  <div className="category-header" style={{ padding: '0 4px' }}>
+                    <div>
+                      <div className="category-title">My Custom Creations</div>
+                      <div className="category-sub">Your personal procedural wallpaper configurations saved from the studio</div>
+                    </div>
+                  </div>
+
+                  <div className="category-cards-scroll-box" style={{ display: 'flex', gap: '16px', overflowX: 'auto', paddingBottom: '12px' }}>
+                    {customCreations.map((item) => {
+                      const pal = item.paletteIdx >= PALETTES.length
+                        ? customPalettes[item.paletteIdx - PALETTES.length]
+                        : PALETTES[item.paletteIdx];
+
+                      if (!pal) return null;
+
+                      return (
+                        <div key={item.id} className="gallery-card" style={{ flexShrink: 0, width: '280px' }}>
+                          <CustomCreationCanvas
+                            pattern={PATTERNS[item.patternIdx]}
+                            palette={pal}
+                            seed={item.seed}
+                            zoomLevel={item.zoomLevel}
+                            fitMode={item.fitMode}
+                            isInverted={item.isInverted}
+                            customPalettes={customPalettes}
+                          />
+                          
+                          <div className="gallery-card-info">
+                            <div className="gallery-card-name" style={{ textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>
+                              {item.name || "Untitled Creation"}
+                            </div>
+                            <div className="card-quick-actions">
+                              <button
+                                className="card-action-btn btn-card-edit"
+                                onClick={() => loadGalleryCreation(item)}
+                              >
+                                Edit
+                              </button>
+                              <button
+                                className="card-action-btn btn-card-download"
+                                style={{ background: '#ef4444', color: 'white', border: 'none' }}
+                                onClick={(e) => deleteFromGallery(item.id, e)}
+                              >
+                                Delete
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </section>
+              )}
+
               {/* Gallery Category filter bar */}
               <div className="home-filter-bar" style={{ marginTop: '24px' }}>
                 <span className="filter-label">Filter Styles:</span>
@@ -803,6 +1085,15 @@ export default function App() {
                         <button className="btn-create-palette-header" onClick={() => setIsPaletteModalActive(true)}>
                           + Add Palette
                         </button>
+                        {paletteIdx >= PALETTES.length && (
+                          <button
+                            className="btn-create-palette-header"
+                            style={{ background: '#ef4444', color: 'white', borderColor: '#ef4444' }}
+                            onClick={deleteSelectedPalette}
+                          >
+                            Delete Selected
+                          </button>
+                        )}
                       </div>
 
                       <div className="variation-actions">
@@ -860,6 +1151,70 @@ export default function App() {
                       })}
                     </div>
                   </div>
+
+                  {/* ── RECENT WORKSPACE HISTORY SECTION ── */}
+                  <div className="history-section">
+                    <div className="control-header-row">
+                      <div className="header-title-group" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                        <div className="control-label">Recent Variations History</div>
+                        <button className="btn-create-palette-header" onClick={addToHistoryCurrent}>
+                          + Save Snapshot
+                        </button>
+                      </div>
+                    </div>
+
+                    {history.length === 0 ? (
+                      <div className="history-empty-placeholder">
+                        No variations recorded. Click "+ Save Snapshot" or generate a random layout to save history states.
+                      </div>
+                    ) : (
+                      <div className="history-grid">
+                        {history.map((item) => {
+                          const pal = item.paletteIdx >= PALETTES.length
+                            ? customPalettes[item.paletteIdx - PALETTES.length]
+                            : PALETTES[item.paletteIdx];
+
+                          if (!pal) return null;
+
+                          return (
+                            <div
+                              key={item.id}
+                              className="history-card"
+                              onClick={() => loadHistoryItem(item)}
+                              title="Click to restore this variation snapshot"
+                            >
+                              <HistoryCardCanvas
+                                pattern={PATTERNS[item.patternIdx]}
+                                palette={pal}
+                                seed={item.seed}
+                                zoomLevel={item.zoomLevel}
+                                fitMode={item.fitMode}
+                                isInverted={item.isInverted}
+                                customPalettes={customPalettes}
+                              />
+                              <div className="history-card-actions">
+                                <button
+                                  className="history-card-btn"
+                                  title="Add variation to Gallery catalog"
+                                  onClick={(e) => addHistoryItemToGallery(item, e)}
+                                >
+                                  + Gallery
+                                </button>
+                                <button
+                                  className="history-card-btn"
+                                  title="Remove from history"
+                                  style={{ color: '#ef4444' }}
+                                  onClick={(e) => deleteHistoryItem(item.id, e)}
+                                >
+                                  Delete
+                                </button>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
 
@@ -912,7 +1267,18 @@ export default function App() {
                 </div>
 
                 <div className="control-group native-wallpaper-group" style={{ display: 'block', marginTop: '10px' }}>
-                  <div className="control-label">Desktop Wallpaper</div>
+                  <div className="control-label">Workspace Integrations</div>
+                  <button
+                    className="btn-custom-export-prominent text-center w-full"
+                    onClick={addCurrentToGallery}
+                    style={{ background: 'var(--card-bg)', color: 'var(--text)', border: '1.5px solid var(--border)', marginBottom: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
+                  >
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <line x1="12" y1="5" x2="12" y2="19"></line>
+                      <line x1="5" y1="12" x2="19" y2="12"></line>
+                    </svg>
+                    <span>Save to Gallery Catalog</span>
+                  </button>
                   <button className="btn-custom-export-prominent text-center w-full" onClick={applyWallpaper} style={{ background: 'var(--accent)', color: 'var(--bg)', border: '1.5px solid var(--accent)' }}>
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                       <rect x="3" y="3" width="18" height="12" rx="2" ry="2"></rect>

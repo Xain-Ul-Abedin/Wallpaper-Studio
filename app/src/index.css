@@ -3084,4 +3084,75 @@ body.site-dark .startup-logo-mark {
   height: 100%;
 }
 
+/* Studio History Section Custom Styles */
+.history-section {
+  margin-top: 24px;
+  border-top: 1.5px solid var(--border);
+  padding-top: 20px;
+}
+
+.history-grid {
+  display: flex;
+  gap: 16px;
+  overflow-x: auto;
+  padding-bottom: 12px;
+  margin-top: 12px;
+}
+
+.history-card {
+  position: relative;
+  flex-shrink: 0;
+  width: 120px;
+  border-radius: 8px;
+  border: 1.5px solid var(--border);
+  overflow: hidden;
+  background: var(--card-bg);
+  box-shadow: var(--card-shadow);
+  transition: transform 0.2s ease, border-color 0.2s ease;
+}
+
+.history-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--text-muted);
+}
+
+.history-card-actions {
+  display: flex;
+  background: var(--card-bg);
+  border-top: 1px solid var(--border);
+  height: 28px;
+}
+
+.history-card-btn {
+  flex: 1;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  font-size: 0.75rem;
+}
+
+.history-card-btn:hover {
+  color: var(--text);
+  background: var(--hover-bg);
+}
+
+.history-card-btn:not(:last-child) {
+  border-right: 1px solid var(--border);
+}
+
+.history-empty-placeholder {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  padding: 24px 0;
+  text-align: center;
+  border: 1.5px dashed var(--border);
+  border-radius: 8px;
+  margin-top: 12px;
+}
+
 

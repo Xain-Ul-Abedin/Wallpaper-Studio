@@ -1067,6 +1067,7 @@ window.addEventListener('resize', () => {
 (function setupDemoVideoLoader() {
   const video  = document.getElementById('demoVideo');
   const loader = document.getElementById('demoVideoLoader');
+  const wrapper = document.getElementById('demoVideoWrapper');
   if (!video || !loader) return;
 
   // Start with video hidden so the loader shows through
@@ -1089,6 +1090,85 @@ window.addEventListener('resize', () => {
 
   // If video is already ready (cached), hide the loader immediately
   if (video.readyState >= 3) onCanPlay();
+
+  // CUSTOM INTERACTIVE HOVER CONTROLS
+  const playPauseBtn = document.getElementById('videoPlayPauseBtn');
+  const muteBtn = document.getElementById('videoMuteBtn');
+  const fullscreenBtn = document.getElementById('videoFullscreenBtn');
+  const progressContainer = document.getElementById('videoProgressContainer');
+  const progressBar = document.getElementById('videoProgressBar');
+
+  if (!playPauseBtn || !muteBtn || !fullscreenBtn || !progressContainer || !progressBar) return;
+
+  // Play / Pause Toggle
+  function togglePlay() {
+    if (video.paused) {
+      video.play();
+    } else {
+      video.pause();
+    }
+  }
+
+  video.onclick = togglePlay;
+  playPauseBtn.onclick = (e) => {
+    e.stopPropagation();
+    togglePlay();
+  };
+
+  video.onplay = () => {
+    playPauseBtn.querySelector('.icon-play').classList.add('hidden');
+    playPauseBtn.querySelector('.icon-pause').classList.remove('hidden');
+  };
+
+  video.onpause = () => {
+    playPauseBtn.querySelector('.icon-play').classList.remove('hidden');
+    playPauseBtn.querySelector('.icon-pause').classList.add('hidden');
+  };
+
+  // Mute / Unmute Toggle
+  muteBtn.onclick = (e) => {
+    e.stopPropagation();
+    video.muted = !video.muted;
+    if (video.muted) {
+      muteBtn.querySelector('.icon-mute').classList.remove('hidden');
+      muteBtn.querySelector('.icon-unmute').classList.add('hidden');
+    } else {
+      muteBtn.querySelector('.icon-mute').classList.add('hidden');
+      muteBtn.querySelector('.icon-unmute').classList.remove('hidden');
+    }
+  };
+
+  // Progress Bar Time Update
+  video.addEventListener('timeupdate', () => {
+    const percent = (video.currentTime / video.duration) * 100;
+    progressBar.style.width = `${percent}%`;
+  });
+
+  // Scrubbing Timeline
+  progressContainer.onclick = (e) => {
+    e.stopPropagation();
+    const rect = progressContainer.getBoundingClientRect();
+    const clickX = e.clientX - rect.left;
+    const width = rect.width;
+    const percentage = clickX / width;
+    video.currentTime = percentage * video.duration;
+  };
+
+  // Fullscreen Toggle
+  fullscreenBtn.onclick = (e) => {
+    e.stopPropagation();
+    if (!document.fullscreenElement) {
+      if (wrapper.requestFullscreen) {
+        wrapper.requestFullscreen();
+      } else if (wrapper.webkitRequestFullscreen) {
+        wrapper.webkitRequestFullscreen();
+      }
+    } else {
+      if (document.exitFullscreen) {
+        document.exitFullscreen();
+      }
+    }
+  };
 })();
 
 // INITIALIZATION

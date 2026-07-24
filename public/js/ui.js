@@ -1211,10 +1211,62 @@ function checkDesktopRouting() {
   }
 }
 
+function setupDesktopShortcuts() {
+  // Disable default browser context menu inside Electron wrapper
+  if (window.electronAPI && window.electronAPI.isNativeDesktop) {
+    window.addEventListener('contextmenu', (e) => {
+      e.preventDefault();
+    });
+  }
+
+  // Keyboard Shortcuts Listener
+  window.addEventListener('keydown', (e) => {
+    // 1. SPACEBAR: Randomize (only if not focused on text fields)
+    if (e.code === 'Space') {
+      if (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA' || document.activeElement.getAttribute('contenteditable') === 'true') {
+        return;
+      }
+      e.preventDefault(); // prevent default space scroll
+      const btnRandomizer = document.getElementById('btnRandomizer');
+      if (btnRandomizer) btnRandomizer.click();
+    }
+
+    // 2. CTRL + S: Export/Save Active Resolution
+    if ((e.ctrlKey || e.metaKey) && e.code === 'KeyS') {
+      e.preventDefault();
+      const isStudioActive = document.getElementById('viewStudio')?.classList.contains('active');
+      if (isStudioActive) {
+        const isDesktopTab = document.getElementById('tabDesktop')?.classList.contains('active');
+        const isTabletTab = document.getElementById('tabTablet')?.classList.contains('active');
+        const isMobileTab = document.getElementById('tabMobile')?.classList.contains('active');
+
+        if (isDesktopTab) {
+          exportImage(DESKTOP_W, DESKTOP_H, 'wallpaper-desktop-5760x3240.png');
+        } else if (isTabletTab) {
+          exportImage(TABLET_W, TABLET_H, 'wallpaper-tablet-3096x4128.png');
+        } else if (isMobileTab) {
+          exportImage(MOBILE_W, MOBILE_H, 'wallpaper-mobile-1935x4194.png');
+        } else {
+          // Default / All Devices: export Desktop 4K
+          exportImage(DESKTOP_W, DESKTOP_H, 'wallpaper-desktop-5760x3240.png');
+        }
+      }
+    }
+
+    // 3. CTRL + D: Toggle Light / Dark Mode Theme
+    if ((e.ctrlKey || e.metaKey) && e.code === 'KeyD') {
+      e.preventDefault();
+      const siteThemeBtn = document.getElementById('siteThemeBtn');
+      if (siteThemeBtn) siteThemeBtn.click();
+    }
+  });
+}
+
 // INITIALIZATION
 setInverted(true);
 setupViewNavigation();
 checkDesktopRouting();
+setupDesktopShortcuts();
 setupComparisonSlider();
 setupFaqAccordion();
 setupHomeFilterBar();

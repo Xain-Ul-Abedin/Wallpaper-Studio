@@ -1175,6 +1175,18 @@ window.addEventListener('resize', () => {
   };
 })();
 
+function setupCtaScroll() {
+  const scrollDownloadBtn = document.getElementById('btnHeroScrollDownload');
+  if (scrollDownloadBtn) {
+    scrollDownloadBtn.onclick = () => {
+      const downloadSection = document.querySelector('.overview-download-section');
+      if (downloadSection) {
+        downloadSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    };
+  }
+}
+
 // INITIALIZATION
 setInverted(true);
 setupViewNavigation();
@@ -1185,6 +1197,7 @@ setupDeviceTabs();
 setupZoomCropControls();
 setupFullscreenPreview();
 setupDropdownMenus();
+setupCtaScroll();
 setupCustomModal();
 setupAddPaletteModal();
 buildStyleGrid();

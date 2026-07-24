@@ -331,6 +331,29 @@ body.site-dark .site-theme-btn svg {
   border-color: var(--text-muted);
 }
 
+.btn-tertiary-pill {
+  padding: 14px 28px;
+  border-radius: 100px;
+  background: var(--card-bg);
+  color: var(--text);
+  border: 1.5px solid var(--border);
+  font-family: 'Lexend', sans-serif;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: transform 0.2s ease, border-color 0.2s ease;
+  box-shadow: var(--card-shadow);
+}
+
+.btn-tertiary-pill:hover {
+  transform: translateY(-2px);
+  border-color: var(--text-muted);
+}
+
+
 .hero-badges {
   display: flex;
   gap: 12px;

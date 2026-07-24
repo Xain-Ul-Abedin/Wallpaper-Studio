@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wallpaper Studio — Minimalist Wallpapers</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%23111'/><text x='16' y='21' text-anchor='middle' font-family='Lexend, sans-serif' font-size='13' font-weight='600' fill='white'>WPS</text></svg>">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body class="site-light">
+
+<svg style="width:0;height:0;position:absolute;" aria-hidden="true" focusable="false">
+  <linearGradient id="rainbowGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+    <stop offset="0%" stop-color="#ff2a5f" />
+    <stop offset="25%" stop-color="#ff9438" />
+    <stop offset="50%" stop-color="#10b981" />
+    <stop offset="75%" stop-color="#00d2ff" />
+    <stop offset="100%" stop-color="#9333ea" />
+  </linearGradient>
+</svg>
+
+<!-- GLOBAL PAGE TRANSITION LOADING DOTS ANIMATION OVERLAY -->
+<div class="page-transition-loader" id="pageTransitionLoader">
+  <div class="transition-dots">
+    <span class="dot"></span>
+    <span class="dot"></span>
+    <span class="dot"></span>
+  </div>
+</div>
+
+<!-- APP HEADER & TOP NAVIGATION -->
+<header class="app-header">
+  <div class="header-left">
+    <nav class="nav-pill-group">
+      <button class="nav-icon-btn active" id="navProductBtn" title="Overview">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"></circle>
+          <line x1="2" y1="12" x2="22" y2="12"></line>
+          <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+        </svg>
+      </button>
+      <button class="nav-icon-btn" id="navHomeBtn" title="Gallery Home">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="3" width="7" height="9"></rect>
+          <rect x="14" y="3" width="7" height="5"></rect>
+          <rect x="14" y="12" width="7" height="9"></rect>
+          <rect x="3" y="16" width="7" height="5"></rect>
+        </svg>
+      </button>
+      <button class="nav-icon-btn" id="navStudioBtn" title="Open Studio Editor">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="12" y1="5" x2="12" y2="19"></line>
+          <line x1="5" y1="12" x2="19" y2="12"></line>
+        </svg>
+      </button>
+    </nav>
+
+    <div class="logo">
+      <span class="logo-mark">WPS</span>
+      <h1>Wallpaper Studio</h1>
+    </div>
+  </div>
+
+  <div class="header-right">
+    <button class="site-theme-btn" id="siteThemeBtn" title="Toggle site theme">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+        <circle cx="8" cy="8" r="3.5" stroke="currentColor" stroke-width="1.3"/>
+        <path d="M8 1.5v2M8 12.5v2M1.5 8h2M12.5 8h2M3.4 3.4l1.4 1.4M11.2 11.2l1.4 1.4M3.4 12.6l1.4-1.4M11.2 4.8l1.4-1.4"
+              stroke="currentColor"
+              stroke-width="1.3"
+              stroke-linecap="round"/>
+      </svg>
+    </button>
+  </div>
+</header>
+
+<!-- VIEW 0: PRODUCT MARKETING VIEW -->
+<main class="view-container active" id="viewProduct">
+  <!-- HERO SECTION -->
+  <section class="hero-section">
+    <div class="app-icon-badge">
+      <svg viewBox="0 0 32 32" width="48" height="48">
+        <rect width="32" height="32" rx="8" fill="url(#rainbowGradient)"/>
+        <text x="16" y="22" text-anchor="middle" font-family="Lexend, sans-serif" font-size="12" font-weight="700" fill="white">WPS</text>
+      </svg>
+    </div>
+    <h2 class="hero-headline">Minimalist Procedural Wallpapers</h2>
+    <p class="hero-subtitle">Pure vector mathematics turned into high-definition wallpapers for Mac, Windows, Mobile, and Web.</p>
+    
+    <div class="hero-cta-group">
+      <button class="btn-primary-pill" id="btnHeroLaunchStudio">Launch Web Studio</button>
+      <button class="btn-secondary-pill" id="btnHeroExploreGallery">Explore Gallery</button>
+    </div>
+    
+    <div class="hero-badges">
+      <span>Free & Open Source</span>
+      <span class="dot-separator">•</span>
+      <span>Zero Tracking</span>
+      <span class="dot-separator">•</span>
+      <span>60FPS Canvas Engine</span>
+    </div>
+  </section>
+
+  <!-- DARK / LIGHT MODE COMPARISON SLIDER -->
+  <section class="slider-comparison-section">
+    <div class="slider-header">
+      <span class="section-tag">COMPARE EDITIONS</span>
+      <h3 class="section-title">Dark & Light Calibrated</h3>
+      <p class="section-desc">Handcrafted color schemes calibrated for clean dark and light desktop setups. Drag the handle to compare.</p>
+    </div>
+    
+    <div class="slider-wrapper" id="sliderWrapper">
+      <canvas id="sliderCanvas" width="800" height="500"></canvas>
+      <div class="slider-bar" id="sliderBar">
+        <div class="slider-handle">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="15 18 9 12 15 6"></polyline>
+          </svg>
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="9 18 15 12 9 6"></polyline>
+          </svg>
+        </div>
+      </div>
+      <div class="slider-side-label label-left">Dark Edition</div>
+      <div class="slider-side-label label-right">Light Edition</div>
+    </div>
+  </section>
+
+  <!-- DEMO IN ACTION SECTION -->
+  <section class="demo-action-section">
+    <div class="slider-header">
+      <span class="section-tag">PREVIEW</span>
+      <h3 class="section-title">Studio in Action</h3>
+      <p class="section-desc">Procedural canvas rendering, customized ratios, and responsive exports operating fluidly at 60FPS.</p>
+    </div>
+    
+    <div class="demo-video-wrapper" id="demoVideoWrapper">
+      <!-- CIRCULAR LOADER SHOWN UNTIL VIDEO CAN PLAY -->
+      <div class="demo-video-loader" id="demoVideoLoader">
+        <div class="video-spinner"></div>
+        <span class="video-loading-label">Loading :)</span>
+      </div>
+      <video id="demoVideo" autoplay loop muted playsinline class="demo-video-element">
+        <source src="Demo_WPS.mp4" type="video/mp4">
+        Your browser does not support the video tag.
+      </video>
+    </div>
+  </section>
+
+  <!-- BENTO FEATURES GRID -->
+  <section class="features-grid-section">
+    <div class="slider-header">
+      <span class="section-tag">FEATURES</span>
+      <h3 class="section-title">Designed for Minimalists</h3>
+    </div>
+    
+    <div class="bento-grid">
+      <div class="bento-card">
+        <div class="bento-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+            <polyline points="2 17 12 22 22 17"></polyline>
+            <polyline points="2 12 12 17 22 12"></polyline>
+          </svg>
+        </div>
+        <h4>Pure Vector Mathematics</h4>
+        <p>Rendered algorithmically on HTML5 canvas with zero resolution loss or compression artifacts.</p>
+      </div>
+
+      <div class="bento-card">
+        <div class="bento-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect>
+            <line x1="12" y1="18" x2="12.01" y2="18"></line>
+          </svg>
+        </div>
+        <h4>Multi-Device Ratios</h4>
+        <p>Native presets for 4K UHD, 5K Retina, iPad/Tablets, Mobile 9:19.5, and 300 DPI Print posters.</p>
+      </div>
+
+      <div class="bento-card">
+        <div class="bento-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"></circle>
+            <path d="M12 2a7 7 0 1 0 10 10"></path>
+          </svg>
+        </div>
+        <h4>Curated Tones</h4>
+        <p>Hand-picked color palettes dynamically generated for optimal screen brightness and contrast.</p>
+      </div>
+
+      <div class="bento-card">
+        <div class="bento-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 20h9"></path>
+            <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
+          </svg>
+        </div>
+        <h4>Custom Palette Studio</h4>
+        <p>Input your base, mid, and accent hex codes to generate a smooth 10-shade theme instantly.</p>
+      </div>
+
+      <div class="bento-card">
+        <div class="bento-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+            <line x1="9" y1="3" x2="9" y2="21"></line>
+            <line x1="15" y1="3" x2="15" y2="21"></line>
+            <line x1="3" y1="9" x2="21" y2="9"></line>
+            <line x1="3" y1="15" x2="21" y2="15"></line>
+          </svg>
+        </div>
+        <h4>Zero Frame Clipping</h4>
+        <p>Calibrated boundaries with 1-pixel safety padding preventing outline cutting on edges.</p>
+      </div>
+
+      <div class="bento-card">
+        <div class="bento-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+          </svg>
+        </div>
+        <h4>Instant High-Res Export</h4>
+        <p>Fast render-to-blob pipeline allowing direct watermark-free PNG downloads in seconds.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ SECTION -->
+  <section class="faq-section">
+    <div class="slider-header">
+      <span class="section-tag">FAQ</span>
+      <h3 class="section-title">Frequently Asked Questions</h3>
+    </div>
+    
+    <div class="faq-accordion">
+      <div class="faq-item">
+        <button class="faq-trigger">
+          <span>Is Wallpaper Studio completely free?</span>
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+            <polyline points="6 9 12 15 18 9"></polyline>
+          </svg>
+        </button>
+        <div class="faq-content">
+          <p>Yes. Wallpaper Studio is 100% open-source, free, and does not display any advertisements or tracking cookies.</p>
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-trigger">
+          <span>What resolutions are supported?</span>
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+            <polyline points="6 9 12 15 18 9"></polyline>
+          </svg>
+        </button>
+        <div class="faq-content">
+          <p>We support standard presets up to 4K UHD (3840x2160), 5K Retina (5120x2880), Ultra-wide (21:9), iPad/Tablets, Mobile screens, and even custom dimensions up to 10,000 pixels.</p>
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-trigger">
+          <span>How does the local procedural rendering work?</span>
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+            <polyline points="6 9 12 15 18 9"></polyline>
+          </svg>
+        </button>
+        <div class="faq-content">
+          <p>All math equations and HSL colors are calculated directly in your browser. No images are fetched from a server, meaning it runs entirely offline once loaded.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<!-- VIEW 1: GALLERY HOME VIEW -->
+<main class="view-container" id="viewGallery">
+  <!-- FEATURED HERO BANNER -->
+  <section class="featured-hero-banner" id="featuredHero">
+    <canvas id="featuredCanvas" width="1920" height="1080"></canvas>
+    <div class="featured-overlay-content">
+      <div class="featured-tag-pill">
+        FEATURED COLLECTION
+      </div>
+      <h2 class="featured-title" id="featuredTitle">Flowing Hills — Stone</h2>
+      <p class="featured-sub" id="featuredSub">Curated Minimalist Vector Artwork • Light Edition (16:9 Desktop)</p>
+      
+      <div class="featured-cta-group">
+        <button class="btn-open-in-studio" id="btnFeaturedStudio">
+          <span>Customize in Studio</span>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="9 18 15 12 9 6"></polyline>
+          </svg>
+        </button>
+        <button class="btn-hero-fullscreen" id="btnFeaturedFullscreen">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="15 3 21 3 21 9"></polyline>
+            <polyline points="9 21 3 21 3 15"></polyline>
+            <line x1="21" y1="3" x2="14" y2="10"></line>
+            <line x1="3" y1="21" x2="10" y2="14"></line>
+          </svg>
+          <span>Fullscreen Preview</span>
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- HOME CATEGORY FILTER BAR WITH UNCLIPPED HOVER BOUNDS -->
+  <div class="home-filter-bar" id="homeFilterBar">
+    <span class="filter-label">Filter:</span>
+    <button class="filter-pill active" data-filter="all">All Styles</button>
+    <button class="filter-pill" data-filter="Arcos">Arcos (Arches)</button>
+    <button class="filter-pill" data-filter="Colinas">Colinas (Mountains)</button>
+    <button class="filter-pill" data-filter="Dunas">Dunas (Waves)</button>
+    <button class="filter-pill" data-filter="Rabisco">Rabisco (Scribbles)</button>
+  </div>
+
+  <!-- CATEGORY CAROUSEL ROWS -->
+  <div class="gallery-categories-wrapper" id="galleryCategories">
+    <!-- POPULATED DYNAMICALLY BY UI.JS -->
+  </div>
+</main>
+
+<!-- VIEW 2: STUDIO EDITOR VIEW -->
+<main class="view-container" id="viewStudio">
+  <div class="main-layout">
+    <div class="preview-area">
+      <div class="preview-top-toolbar">
+        <div class="device-segmented-control">
+          <button class="device-tab active" id="tabAll">All Devices</button>
+          <button class="device-tab" id="tabDesktop">Desktop</button>
+          <button class="device-tab" id="tabTablet">Tablet</button>
+          <button class="device-tab" id="tabMobile">Mobile</button>
+        </div>
+
+        <div class="toolbar-right-actions">
+          <div class="zoom-crop-toolbar">
+            <button class="action-pill-btn active" id="btnModeCrop" title="Crop Mode">Crop</button>
+            <button class="action-pill-btn" id="btnModeFit" title="Fit Mode">Fit</button>
+            <div class="divider-v"></div>
+            <button class="icon-zoom-btn" id="btnZoomOut" title="Zoom Out (-10%)">-</button>
+            <span class="zoom-percentage-badge" id="zoomPercentageBadge">100%</span>
+            <button class="icon-zoom-btn" id="btnZoomIn" title="Zoom In (+10%)">+</button>
+          </div>
+
+          <button class="btn-enlarge-preview" id="btnEnlargePreview" title="Fullscale Fullscreen Lightbox">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="15 3 21 3 21 9"></polyline>
+              <polyline points="9 21 3 21 3 15"></polyline>
+              <line x1="21" y1="3" x2="14" y2="10"></line>
+              <line x1="3" y1="21" x2="10" y2="14"></line>
+            </svg>
+            <span>Fullscreen</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- PREVIEW CONTAINER WITH CLICKABLE DEVICE PREVIEW CARDS -->
+      <div class="preview-container mode-all" id="previewContainer">
+        <div class="skeleton-loader-overlay" id="skeletonLoader"></div>
+
+        <div class="preview-desktop-wrap device-preview-card" id="wrapDesktop" title="Click to view Desktop preview in Fullscreen">
+          <div class="preview-label">Desktop 4K <span class="click-hint">(Expand)</span></div>
+          <canvas id="previewDesktop" width="960" height="540"></canvas>
+        </div>
+
+        <div class="preview-secondary-group">
+          <div class="preview-tablet-wrap device-preview-card" id="wrapTablet" title="Click to view Tablet preview in Fullscreen">
+            <div class="preview-label">Tablet <span class="click-hint">(Expand)</span></div>
+            <canvas id="previewTablet" width="600" height="800"></canvas>
+          </div>
+
+          <div class="preview-mobile-wrap device-preview-card" id="wrapMobile" title="Click to view Mobile preview in Fullscreen">
+            <div class="preview-label">Mobile <span class="click-hint">(Expand)</span></div>
+            <canvas id="previewMobile" width="290" height="628"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- BOTTOM PALETTE BAR -->
+      <div class="bottom-palette-bar">
+        <div class="control-group width-full">
+          <div class="control-header-row">
+            <div class="header-title-group">
+              <div class="control-label">Curated Color Palettes</div>
+              <button class="btn-create-palette-header" id="btnHeaderCreatePalette">
+                + Add Palette
+              </button>
+            </div>
+
+            <div class="variation-actions">
+              <button class="btn-action simple-randomizer-btn" id="btnRandomizer" title="Randomize Style, Mode & Palette">
+                <svg class="black-dice-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="3" y="3" width="18" height="18" rx="4" ry="4"></rect>
+                  <circle cx="8.5" cy="8.5" r="1.5" fill="currentColor"></circle>
+                  <circle cx="15.5" cy="8.5" r="1.5" fill="currentColor"></circle>
+                  <circle cx="12" cy="12" r="1.5" fill="currentColor"></circle>
+                  <circle cx="8.5" cy="15.5" r="1.5" fill="currentColor"></circle>
+                  <circle cx="15.5" cy="15.5" r="1.5" fill="currentColor"></circle>
+                </svg>
+                <span class="randomizer-text">Randomizer</span>
+              </button>
+
+              <button class="btn-action btn-variation" id="btnVariation" title="Randomize Seed Variation">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="23 4 23 10 17 10"></polyline>
+                  <polyline points="1 20 1 14 7 14"></polyline>
+                  <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+                </svg>
+                <span>Variation</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="palette-grid" id="paletteRow"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CONTROLS SIDEBAR -->
+    <div class="controls">
+      <div class="control-group">
+        <div class="control-label">Pattern</div>
+        <div class="style-grid" id="styleGrid"></div>
+      </div>
+
+      <div class="control-group">
+        <div class="control-label">Mode</div>
+        <div class="mode-toggle">
+          <button class="mode-btn" id="btnDark">
+            <span class="mode-icon mode-icon-dark"></span>
+            Dark
+          </button>
+
+          <button class="mode-btn active" id="btnLight">
+            <span class="mode-icon mode-icon-light"></span>
+            Light
+          </button>
+        </div>
+      </div>
+
+      <div class="control-group export-group">
+        <div class="control-label">Export Resolutions</div>
+
+        <button class="btn-custom-export-prominent" id="btnCustomModal">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="3"></circle>
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+          </svg>
+          <span>Custom Resolution & Units...</span>
+        </button>
+
+        <!-- DESKTOP DROPDOWN -->
+        <div class="export-dropdown-wrapper">
+          <div class="split-export-btn">
+            <button class="btn-export btn-main" id="btnDesktop">
+              <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
+                <path d="M8 2v8M5 7l3 3 3-3M3 12h10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+              Download Desktop
+            </button>
+            <button class="btn-export-arrow" id="arrowDesktop" title="More Desktop Ratios">
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                <path d="M3 4.5l3 3 3-3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </button>
+          </div>
+          <div class="ratio-menu" id="menuDesktop">
+            <button data-w="5760" data-h="3240" data-name="wallpaper-desktop-5760x3240.png">5760 x 3240 (1.5x 4K)</button>
+            <button data-w="3840" data-h="2160" data-name="wallpaper-desktop-3840x2160.png">3840 x 2160 (4K UHD)</button>
+            <button data-w="2560" data-h="1440" data-name="wallpaper-desktop-2560x1440.png">2560 x 1440 (2K QHD)</button>
+            <button data-w="1920" data-h="1080" data-name="wallpaper-desktop-1920x1080.png">1920 x 1080 (FHD)</button>
+          </div>
+          <div class="size-hint">5760 x 3240 px (1.5x 4K)</div>
+        </div>
+
+        <!-- TABLET DROPDOWN -->
+        <div class="export-dropdown-wrapper">
+          <div class="split-export-btn">
+            <button class="btn-export btn-main" id="btnTablet">
+              <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
+                <path d="M8 2v8M5 7l3 3 3-3M3 12h10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+              Download Tablet
+            </button>
+            <button class="btn-export-arrow" id="arrowTablet" title="More Tablet Ratios">
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                <path d="M3 4.5l3 3 3-3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </button>
+          </div>
+          <div class="ratio-menu" id="menuTablet">
+            <button data-w="3096" data-h="4128" data-name="wallpaper-tablet-3096x4128.png">3096 x 4128 (1.5x Tab)</button>
+            <button data-w="2064" data-h="2752" data-name="wallpaper-tablet-2064x2752.png">2064 x 2752 (iPad Pro 13")</button>
+            <button data-w="1640" data-h="2360" data-name="wallpaper-tablet-1640x2360.png">1640 x 2360 (iPad Air)</button>
+          </div>
+          <div class="size-hint">3096 x 4128 px (1.5x Tab)</div>
+        </div>
+
+        <!-- MOBILE DROPDOWN -->
+        <div class="export-dropdown-wrapper">
+          <div class="split-export-btn">
+            <button class="btn-export btn-main" id="btnMobile">
+              <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
+                <path d="M8 2v8M5 7l3 3 3-3M3 12h10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+              Download Mobile
+            </button>
+            <button class="btn-export-arrow" id="arrowMobile" title="More Mobile Ratios">
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                <path d="M3 4.5l3 3 3-3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </button>
+          </div>
+          <div class="ratio-menu" id="menuMobile">
+            <button data-w="1935" data-h="4194" data-name="wallpaper-mobile-1935x4194.png">1935 x 4194 (1.5x Mobile)</button>
+            <button data-w="1290" data-h="2796" data-name="wallpaper-mobile-1290x2796.png">1290 x 2796 (iPhone 16 Pro Max)</button>
+            <button data-w="1179" data-h="2556" data-name="wallpaper-mobile-1179x2556.png">1179 x 2556 (iPhone 16 Pro)</button>
+            <button data-w="1080" data-h="2400" data-name="wallpaper-mobile-1080x2400.png">1080 x 2400 (Android FHD+)</button>
+          </div>
+          <div class="size-hint">1935 x 4194 px (1.5x Mobile)</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<!-- HIGH-END MINIMALIST FOOTER WITH EXACT PORTFOLIO SOCIALS -->
+<footer class="app-footer">
+  <div class="footer-container">
+    <div class="footer-brand">
+      <span class="logo-mark">WPS</span>
+      <span class="footer-title">Wallpaper Studio</span>
+    </div>
+
+    <div class="footer-socials">
+      <a href="https://github.com/Xain-Ul-Abedin" target="_blank" rel="noopener" class="social-link" title="GitHub (Xain-Ul-Abedin)">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path>
+        </svg>
+      </a>
+      <a href="https://www.linkedin.com/in/xain-ul-abedin-4524a340b/" target="_blank" rel="noopener" class="social-link" title="LinkedIn (Xain-Ul-Abedin)">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path>
+          <rect x="2" y="9" width="4" height="12"></rect>
+          <circle cx="4" cy="4" r="2"></circle>
+        </svg>
+      </a>
+      <a href="https://discord.com" target="_blank" rel="noopener" class="social-link" title="Discord (zain.wolf)">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M18 6h0a14.5 14.5 0 0 0-4-1.25 1 1 0 0 0-1 .5 9.4 9.4 0 0 0-.5 1 12.6 12.6 0 0 0-5 0 9.4 9.4 0 0 0-.5-1 1 1 0 0 0-1-.5A14.5 14.5 0 0 0 2 6a1 1 0 0 0-.5.5C.3 9.4-.3 13.7.1 18a1 1 0 0 0 .5.7 14.7 14.7 0 0 0 4.5 2.3 1 1 0 0 0 1-.3c.4-.6.8-1.2 1.1-1.8a1 1 0 0 0-.5-1.2 9.6 9.6 0 0 1-1.5-.7 1 1 0 0 1 .1-1.7c.3.2.6.4.9.6a11.9 11.9 0 0 0 11.6 0c.3-.2.6-.4.9-.6a1 1 0 0 1 .1 1.7 9.6 9.6 0 0 1-1.5.7 1 1 0 0 0-.5 1.2c.3.6.7 1.2 1.1 1.8a1 1 0 0 0 1 .3 14.7 14.7 0 0 0 4.5-2.3 1 1 0 0 0 .5-.7c.5-4.8-.3-9.1-1.4-11.5a1 1 0 0 0-.5-.5z"></path>
+          <circle cx="8.5" cy="12" r="1.5" fill="currentColor"></circle>
+          <circle cx="15.5" cy="12" r="1.5" fill="currentColor"></circle>
+        </svg>
+      </a>
+      <a href="https://zain-portfolio-silk-three.vercel.app" target="_blank" rel="noopener" class="social-link" title="Portfolio (Live)">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"></circle>
+          <line x1="2" y1="12" x2="22" y2="12"></line>
+          <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+        </svg>
+      </a>
+    </div>
+
+    <div class="footer-credit">
+      Created with precision by <a href="https://zain-portfolio-silk-three.vercel.app" target="_blank" rel="noopener">Xain-Ul-Abedin</a>
+    </div>
+  </div>
+</footer>
+
+<!-- INTERACTIVE FULLSCALE LIGHTBOX PREVIEW MODAL -->
+<div class="modal-overlay" id="fullscreenPreviewModal">
+  <div class="custom-modal-card-lg fullscreen-card">
+    <button class="modal-close" id="fullscreenClose">&times;</button>
+    <div class="fullscreen-header-bar">
+      <div>
+        <h3 id="fullscreenTitle">Fullscale Device Preview</h3>
+        <p class="custom-modal-sub" id="fullscreenSub">Live interactive preview with zoom and crop controls.</p>
+      </div>
+
+      <div class="fullscreen-toolbar">
+        <button class="action-pill-btn active" id="modalBtnCrop">Crop</button>
+        <button class="action-pill-btn" id="modalBtnFit">Fit</button>
+        <div class="divider-v"></div>
+        <button class="icon-zoom-btn" id="modalBtnZoomOut">-</button>
+        <span class="zoom-percentage-badge" id="modalZoomBadge">100%</span>
+        <button class="icon-zoom-btn" id="modalBtnZoomIn">+</button>
+      </div>
+    </div>
+
+    <div class="fullscreen-view-box">
+      <canvas id="fullscreenCanvas" width="1920" height="1080"></canvas>
+    </div>
+  </div>
+</div>
+
+<!-- DEVICE-BASED CUSTOM RESOLUTION GENERATOR MODAL -->
+<div class="modal-overlay" id="customModal">
+  <div class="custom-modal-card-lg">
+    <button class="modal-close" id="customModalClose">&times;</button>
+    <h3>Device-Based Custom Resolution Generator</h3>
+    <p class="custom-modal-sub">Select your target device category or input custom dimensions.</p>
+
+    <div class="custom-modal-body">
+      <div class="custom-inputs-column">
+        <div class="input-group">
+          <label>Target Device Category</label>
+          <select id="deviceCategorySelector" class="custom-select">
+            <option value="desktop">Desktop Monitors & Displays</option>
+            <option value="tablet">Tablets & iPads</option>
+            <option value="mobile">Mobile Devices & Smartphones</option>
+            <option value="print">Print & Physical Media (300 DPI)</option>
+            <option value="custom">Custom Dimensions</option>
+          </select>
+        </div>
+
+        <div class="input-group" id="devicePresetGroup">
+          <label>Device Preset</label>
+          <select id="devicePresetSelector" class="custom-select"></select>
+        </div>
+
+        <div class="input-row">
+          <div class="input-group">
+            <label id="widthLabel">Width (px)</label>
+            <input type="number" id="inputWidth" value="3840" min="100" max="10000" class="custom-input">
+          </div>
+          <div class="input-group">
+            <label id="heightLabel">Height (px)</label>
+            <input type="number" id="inputHeight" value="2160" min="100" max="10000" class="custom-input">
+          </div>
+        </div>
+
+        <div class="calculated-info" id="calculatedResolutionText">
+          Target Output: 3840 x 2160 pixels (16:9)
+        </div>
+
+        <button class="modal-download-btn-fixed" id="btnDownloadCustom">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+            <path d="M8 2v8M5 7l3 3 3-3M3 12h10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <span>Download Custom Device Wallpaper</span>
+        </button>
+      </div>
+
+      <div class="custom-preview-column">
+        <div class="preview-label">Live Device Aspect Preview</div>
+        <div class="custom-canvas-box">
+          <canvas id="customPreviewCanvas" width="380" height="214"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ROCK-SOLID DEBOUNCED CUSTOM PALETTE MODAL -->
+<div class="modal-overlay" id="addPaletteModal">
+  <div class="custom-modal-card-lg">
+    <button class="modal-close" id="addPaletteModalClose">&times;</button>
+    <h3>Custom Palette Studio</h3>
+    <p class="custom-modal-sub">Pick your Base, Mid, and Accent colors to generate a smooth 10-shade palette.</p>
+
+    <div class="custom-modal-body">
+      <div class="custom-inputs-column">
+        <div class="input-group">
+          <label>Palette Name</label>
+          <input type="text" id="customPaletteName" value="My Custom Palette" class="custom-input">
+        </div>
+
+        <div class="color-pickers-row margin-bottom-16">
+          <div class="picker-item">
+            <label>Base / Dark Tone</label>
+            <input type="color" id="colorPicker1" value="#0f172a" class="color-wheel-input">
+          </div>
+          <div class="picker-item">
+            <label>Mid Tone</label>
+            <input type="color" id="colorPicker2" value="#334155" class="color-wheel-input">
+          </div>
+          <div class="picker-item">
+            <label>Accent / Highlight</label>
+            <input type="color" id="colorPicker3" value="#10b981" class="color-wheel-input">
+          </div>
+        </div>
+
+        <div class="palette-preview-strip-label">Generated 10-Shade Palette Preview</div>
+        <div class="palette-preview-strip" id="customPalettePreviewStrip"></div>
+
+        <button class="modal-download-btn-fixed" id="btnSaveCustomPalette">
+          Save & Apply Palette
+        </button>
+      </div>
+
+      <div class="custom-preview-column">
+        <div class="preview-label">Live Pattern Canvas Preview</div>
+        <div class="custom-canvas-box">
+          <canvas id="palettePreviewCanvas" width="360" height="200"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script type="module" src="js/ui.js"></script>
+
+</body>
+</html>

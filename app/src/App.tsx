@@ -78,7 +78,7 @@ function MiniCanvas({ pattern, palette, customPalettes }: MiniCanvasProps) {
   return <canvas ref={canvasRef} width={70} height={70} style={{ width: '70px', height: '70px', display: 'block', borderRadius: '4px' }} />;
 }
 
-// ── GALLERY CARD CANVAS COMPONENT ──
+// ── DEFERRED GALLERY CARD CANVAS COMPONENT (PREVENTS UX FREEZING) ──
 interface GalleryCardCanvasProps {
   pattern: PatternType;
   palette: Palette;
@@ -87,20 +87,47 @@ interface GalleryCardCanvasProps {
 
 function GalleryCardCanvas({ pattern, palette, customPalettes }: GalleryCardCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const [isLoaded, setIsLoaded] = useState<boolean>(false);
 
   useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
+    setIsLoaded(false);
+    const timer = setTimeout(() => {
+      const canvas = canvasRef.current;
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return;
 
-    drawPattern(ctx, 280, 180, pattern, palette, 888, 100, 'crop', false, customPalettes);
+      drawPattern(ctx, 280, 180, pattern, palette, 888, 100, 'crop', false, customPalettes);
+      setIsLoaded(true);
+    }, Math.random() * 150 + 50); // stagger rendering loops
+
+    return () => clearTimeout(timer);
   }, [pattern, palette, customPalettes]);
 
-  return <canvas ref={canvasRef} width={280} height={180} style={{ width: '100%', height: '180px', display: 'block', borderRadius: '12px 12px 0 0' }} />;
+  return (
+    <div style={{ position: 'relative', width: '100%', height: '180px', background: 'var(--hover-bg)', borderRadius: '12px 12px 0 0', overflow: 'hidden' }}>
+      {!isLoaded && (
+        <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div className="startup-spinner" style={{ width: '24px', height: '24px', borderWidth: '2px' }}></div>
+        </div>
+      )}
+      <canvas
+        ref={canvasRef}
+        width={280}
+        height={180}
+        style={{
+          width: '100%',
+          height: '180px',
+          display: 'block',
+          opacity: isLoaded ? 1 : 0,
+          transition: 'opacity 0.3s ease'
+        }}
+      />
+    </div>
+  );
 }
 
-// ── FEATURED HERO CANVAS COMPONENT ──
+// ── DEFERRED FEATURED HERO CANVAS COMPONENT ──
 interface FeaturedCanvasProps {
   palette: Palette;
   customPalettes: Palette[];
@@ -108,23 +135,52 @@ interface FeaturedCanvasProps {
 
 function FeaturedCanvas({ palette, customPalettes }: FeaturedCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const [isLoaded, setIsLoaded] = useState<boolean>(false);
 
   useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
+    setIsLoaded(false);
+    const timer = setTimeout(() => {
+      const canvas = canvasRef.current;
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return;
 
-    drawPattern(ctx, 1920, 1080, 'flowing-hills', palette, 555, 100, 'crop', false, customPalettes);
+      drawPattern(ctx, 1920, 1080, 'flowing-hills', palette, 555, 100, 'crop', false, customPalettes);
+      setIsLoaded(true);
+    }, 80);
+
+    return () => clearTimeout(timer);
   }, [palette, customPalettes]);
 
-  return <canvas ref={canvasRef} width={1920} height={1080} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />;
+  return (
+    <div style={{ position: 'relative', width: '100%', height: '100%', background: 'var(--hover-bg)', overflow: 'hidden' }}>
+      {!isLoaded && (
+        <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div className="startup-spinner" style={{ width: '32px', height: '32px', borderWidth: '3.5px' }}></div>
+        </div>
+      )}
+      <canvas
+        ref={canvasRef}
+        width={1920}
+        height={1080}
+        style={{
+          width: '100%',
+          height: '100%',
+          objectFit: 'cover',
+          display: 'block',
+          opacity: isLoaded ? 1 : 0,
+          transition: 'opacity 0.4s ease'
+        }}
+      />
+    </div>
+  );
 }
 
 // ── MAIN APPLICATION COMPONENT ──
 export default function App() {
-  // ── ROUTING & NAVIGATION ──
+  // ── ROUTING & PAGE TRANSITION STATE ──
   const [activeTab, setActiveTab] = useState<'gallery' | 'studio' | 'help'>('gallery');
+  const [isTransitioning, setIsTransitioning] = useState<boolean>(false);
 
   // ── CORE STUDIO STATE ──
   const [currentPattern, setCurrentPattern] = useState<number>(0);
@@ -133,8 +189,8 @@ export default function App() {
   const [zoomLevel, setZoomLevel] = useState<number>(100);
   const [fitMode, setFitMode] = useState<'crop' | 'fit'>('crop');
   const [deviceMode, setDeviceMode] = useState<'all' | 'desktop' | 'tablet' | 'mobile'>('all');
-  const [isInverted, setIsInverted] = useState<boolean>(false); // Wallpaper theme mode (false = dark, true = light)
-  const [isLightTheme, setIsLightTheme] = useState<boolean>(true); // Application layout theme (site-light vs site-dark)
+  const [isInverted, setIsInverted] = useState<boolean>(false); // Wallpaper inversion
+  const [isLightTheme, setIsLightTheme] = useState<boolean>(true); // App color scheme
   
   // Custom palettes loaded from localStorage
   const [customPalettes, setCustomPalettes] = useState<Palette[]>(() => {
@@ -176,6 +232,14 @@ export default function App() {
   // ── GALLERY FILTER STATE ──
   const [galleryFilter, setGalleryFilter] = useState<string>('all');
 
+  const navigateToTab = (tab: 'gallery' | 'studio' | 'help') => {
+    setIsTransitioning(true);
+    setTimeout(() => {
+      setActiveTab(tab);
+      setIsTransitioning(false);
+    }, 250); // smooth, fast load transition
+  };
+
   const showToast = (msg: string) => {
     if (toastTimeoutRef.current) {
       window.clearTimeout(toastTimeoutRef.current);
@@ -211,7 +275,7 @@ export default function App() {
 
   // ── REDRAW EVENT HOOK ──
   useEffect(() => {
-    if (!activePalette || activeTab !== 'studio') return;
+    if (!activePalette || activeTab !== 'studio' || isTransitioning) return;
 
     if (deviceMode === 'all' || deviceMode === 'desktop') {
       const canvas = desktopCanvasRef.current;
@@ -242,7 +306,7 @@ export default function App() {
         }
       }
     }
-  }, [currentPattern, paletteIdx, seed, zoomLevel, fitMode, deviceMode, isInverted, customPalettes, activeTab]);
+  }, [currentPattern, paletteIdx, seed, zoomLevel, fitMode, deviceMode, isInverted, customPalettes, activeTab, isTransitioning]);
 
   // ── MODAL ASPECT PREVIEW CANVAS HOOK ──
   useEffect(() => {
@@ -442,7 +506,7 @@ export default function App() {
             <button
               className={`nav-icon-btn ${activeTab === 'gallery' ? 'active' : ''}`}
               title="Gallery Home"
-              onClick={() => setActiveTab('gallery')}
+              onClick={() => navigateToTab('gallery')}
             >
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <rect x="3" y="3" width="7" height="9"></rect>
@@ -454,7 +518,7 @@ export default function App() {
             <button
               className={`nav-icon-btn ${activeTab === 'studio' ? 'active' : ''}`}
               title="Open Studio Editor"
-              onClick={() => setActiveTab('studio')}
+              onClick={() => navigateToTab('studio')}
             >
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <line x1="12" y1="5" x2="12" y2="19"></line>
@@ -464,7 +528,7 @@ export default function App() {
             <button
               className={`nav-icon-btn ${activeTab === 'help' ? 'active' : ''}`}
               title="Help & Shortcuts"
-              onClick={() => setActiveTab('help')}
+              onClick={() => navigateToTab('help')}
             >
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <circle cx="12" cy="12" r="10"></circle>
@@ -503,16 +567,27 @@ export default function App() {
       </header>
 
       {/* ── WORKSPACE CONTENT SWITCHER ── */}
-      <div style={{ flex: 1, overflowY: activeTab === 'studio' ? 'hidden' : 'auto', overflowX: 'hidden' }}>
+      <div style={{ flex: 1, overflowY: activeTab === 'studio' ? 'hidden' : 'auto', overflowX: 'hidden', position: 'relative' }}>
+
+        {/* ── TAB TRANSITION LOADER ── */}
+        {isTransitioning && (
+          <div className="page-transition-loader active" style={{ zIndex: 1000 }}>
+            <div className="transition-dots">
+              <div className="dot"></div>
+              <div className="dot"></div>
+              <div className="dot"></div>
+            </div>
+          </div>
+        )}
 
         {/* ── VIEW 1: GALLERY VIEW ── */}
-        {activeTab === 'gallery' && (
+        {activeTab === 'gallery' && !isTransitioning && (
           <main className="view-container active" id="viewGallery" style={{ padding: '0 0 40px 0' }}>
             
-            {/* Featured Hero Art Section */}
+            {/* Featured Hero Art Section (Full-Width) */}
             <section className="featured-hero-banner" style={{ minHeight: '380px', height: '380px' }}>
               <FeaturedCanvas palette={PALETTES[1] || PALETTES[0]} customPalettes={customPalettes} />
-              <div className="featured-overlay-content">
+              <div className="featured-overlay-content" style={{ paddingLeft: '48px', paddingRight: '48px' }}>
                 <div className="featured-tag-pill">
                   FEATURED PIECE
                 </div>
@@ -525,7 +600,7 @@ export default function App() {
                     onClick={() => {
                       setCurrentPattern(0);
                       setPaletteIdx(1);
-                      setIsInverted(false); // Dark mode wallpaper default
+                      setIsInverted(false);
                       setActiveTab('studio');
                     }}
                   >
@@ -538,77 +613,80 @@ export default function App() {
               </div>
             </section>
 
-            {/* Gallery Category filter bar */}
-            <div className="home-filter-bar" style={{ marginTop: '24px' }}>
-              <span className="filter-label">Filter Styles:</span>
-              <button
-                className={`filter-pill ${galleryFilter === 'all' ? 'active' : ''}`}
-                onClick={() => setGalleryFilter('all')}
-              >
-                All Styles
-              </button>
-              {galleryRows.map(row => (
+            {/* Gallery Page Content Wrapper (with 48px lateral spacing gap) */}
+            <div style={{ padding: '0 48px' }}>
+              {/* Gallery Category filter bar */}
+              <div className="home-filter-bar" style={{ marginTop: '24px' }}>
+                <span className="filter-label">Filter Styles:</span>
                 <button
-                  key={row.title}
-                  className={`filter-pill ${galleryFilter === row.title ? 'active' : ''}`}
-                  onClick={() => setGalleryFilter(row.title)}
+                  className={`filter-pill ${galleryFilter === 'all' ? 'active' : ''}`}
+                  onClick={() => setGalleryFilter('all')}
                 >
-                  {row.title}
+                  All Styles
                 </button>
-              ))}
-            </div>
+                {galleryRows.map(row => (
+                  <button
+                    key={row.title}
+                    className={`filter-pill ${galleryFilter === row.title ? 'active' : ''}`}
+                    onClick={() => setGalleryFilter(row.title)}
+                  >
+                    {row.title}
+                  </button>
+                ))}
+              </div>
 
-            {/* Category lists */}
-            <div className="gallery-categories-wrapper">
-              {galleryRows
-                .filter(row => galleryFilter === 'all' || galleryFilter === row.title)
-                .map((row) => (
-                  <section key={row.title} className="category-section">
-                    <div className="category-header">
-                      <div>
-                        <div className="category-title">{row.title}</div>
-                        <div className="category-sub">{row.sub}</div>
+              {/* Category lists */}
+              <div className="gallery-categories-wrapper">
+                {galleryRows
+                  .filter(row => galleryFilter === 'all' || galleryFilter === row.title)
+                  .map((row) => (
+                    <section key={row.title} className="category-section">
+                      <div className="category-header" style={{ padding: '0 4px' }}>
+                        <div>
+                          <div className="category-title">{row.title}</div>
+                          <div className="category-sub">{row.sub}</div>
+                        </div>
                       </div>
-                    </div>
 
-                    <div className="category-cards-scroll-box" style={{ display: 'flex', gap: '16px', overflowX: 'auto', paddingBottom: '12px' }}>
-                      {PALETTES.slice(0, 5).map((pal, palIdx) => (
-                        <div key={palIdx} className="gallery-card" style={{ flexShrink: 0, width: '280px' }}>
-                          <GalleryCardCanvas pattern={PATTERNS[row.patternIdx]} palette={pal} customPalettes={customPalettes} />
-                          
-                          <div className="gallery-card-info">
-                            <div className="gallery-card-name">{row.title} • {pal.name}</div>
-                            <div className="card-quick-actions">
-                              <button
-                                className="card-action-btn btn-card-edit"
-                                onClick={() => {
-                                  setCurrentPattern(row.patternIdx);
-                                  setPaletteIdx(palIdx);
-                                  setIsInverted(false);
-                                  setActiveTab('studio');
-                                }}
-                              >
-                                Customize
-                              </button>
-                              <button
-                                className="card-action-btn btn-card-download"
-                                onClick={() => downloadWallpaper(3840, 2160, `${row.title}-${pal.name}-4K.png`)}
-                              >
-                                Download 4K
-                              </button>
+                      <div className="category-cards-scroll-box" style={{ display: 'flex', gap: '16px', overflowX: 'auto', paddingBottom: '12px' }}>
+                        {PALETTES.slice(0, 5).map((pal, palIdx) => (
+                          <div key={palIdx} className="gallery-card" style={{ flexShrink: 0, width: '280px' }}>
+                            <GalleryCardCanvas pattern={PATTERNS[row.patternIdx]} palette={pal} customPalettes={customPalettes} />
+                            
+                            <div className="gallery-card-info">
+                              <div className="gallery-card-name">{row.title} • {pal.name}</div>
+                              <div className="card-quick-actions">
+                                <button
+                                  className="card-action-btn btn-card-edit"
+                                  onClick={() => {
+                                    setCurrentPattern(row.patternIdx);
+                                    setPaletteIdx(palIdx);
+                                    setIsInverted(false);
+                                    setActiveTab('studio');
+                                  }}
+                                >
+                                  Customize
+                                </button>
+                                <button
+                                  className="card-action-btn btn-card-download"
+                                  onClick={() => downloadWallpaper(3840, 2160, `${row.title}-${pal.name}-4K.png`)}
+                                >
+                                  Download 4K
+                                </button>
+                              </div>
                             </div>
                           </div>
-                        </div>
-                      ))}
-                    </div>
-                  </section>
-                ))}
+                        ))}
+                      </div>
+                    </section>
+                  ))}
+              </div>
             </div>
           </main>
         )}
 
         {/* ── VIEW 2: STUDIO EDITOR VIEW ── */}
-        {activeTab === 'studio' && (
+        {activeTab === 'studio' && !isTransitioning && (
           <main className="view-container active" id="viewStudio" style={{ padding: 0 }}>
             <div className="main-layout">
               
@@ -964,7 +1042,7 @@ export default function App() {
         )}
 
         {/* ── VIEW 3: HELP & SHORTCUTS VIEW ── */}
-        {activeTab === 'help' && (
+        {activeTab === 'help' && !isTransitioning && (
           <main className="view-container active" style={{ padding: '40px 24px', maxWidth: '800px', margin: '0 auto' }}>
             <h2 style={{ fontSize: '1.8rem', fontWeight: 600, marginBottom: '16px' }}>Offline Help & Shortcut Center</h2>
             <p style={{ color: 'var(--text-muted)', marginBottom: '32px', fontSize: '1.05rem', lineHeight: '1.6' }}>

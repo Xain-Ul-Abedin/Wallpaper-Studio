@@ -7,8 +7,8 @@ function createWindow() {
   const isDev = process.argv.includes('--dev') || process.env.NODE_ENV === 'development';
 
   const win = new BrowserWindow({
-    width: 1280,
-    height: 840,
+    width: 1920,
+    height: 1080,
     minWidth: 1000,
     minHeight: 700,
     title: "WallpaperStudio — Native Desktop App",

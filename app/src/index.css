@@ -2856,4 +2856,135 @@ body.site-dark .startup-logo-mark {
   opacity: 0.65;
 }
 
+/* App Navigation Custom Styles */
+.app-header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  backdrop-filter: blur(12px);
+  border-bottom: 1.5px solid var(--border);
+  background: rgba(var(--bg), 0.85);
+}
+
+/* Onboarding Modal custom styling */
+.onboarding-card {
+  padding: 32px;
+  background: var(--card-bg);
+  border: 1.5px solid var(--border);
+  border-radius: 16px;
+  max-width: 500px;
+  width: 90%;
+  box-shadow: var(--card-shadow);
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  position: relative;
+  animation: modalScaleUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes modalScaleUp {
+  from { transform: scale(0.95); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+.onboarding-slides {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  text-align: center;
+}
+
+.onboarding-step-indicator {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+}
+
+.onboarding-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--border);
+  transition: background 0.2s ease;
+}
+
+.onboarding-dot.active {
+  background: var(--accent);
+}
+
+.onboarding-buttons {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 12px;
+}
+
+.onboarding-btn {
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-weight: 500;
+  cursor: pointer;
+  border: none;
+  font-family: 'Lexend', sans-serif;
+  transition: all 0.2s ease;
+}
+
+.onboarding-btn.next {
+  background: var(--accent);
+  color: var(--bg);
+}
+
+.onboarding-btn.skip {
+  background: transparent;
+  color: var(--text-muted);
+}
+
+/* Tooltip implementation */
+.tooltip-container {
+  position: relative;
+  display: inline-block;
+  cursor: pointer;
+}
+
+.tooltip-text {
+  visibility: hidden;
+  width: 200px;
+  background-color: var(--card-bg);
+  color: var(--text);
+  border: 1.5px solid var(--border);
+  text-align: center;
+  border-radius: 6px;
+  padding: 8px 12px;
+  position: absolute;
+  z-index: 10;
+  bottom: 125%; /* Position above the icon */
+  left: 50%;
+  margin-left: -100px;
+  opacity: 0;
+  transition: opacity 0.3s;
+  font-size: 11px;
+  line-height: 1.4;
+  box-shadow: var(--card-shadow);
+}
+
+.tooltip-container:hover .tooltip-text {
+  visibility: visible;
+  opacity: 1;
+}
+
+/* Info Icon Styling */
+.info-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 1px solid var(--text-muted);
+  color: var(--text-muted);
+  font-size: 10px;
+  font-weight: bold;
+  margin-left: 6px;
+}
+
 

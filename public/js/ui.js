@@ -1188,7 +1188,10 @@ function setupCtaScroll() {
 }
 
 function checkDesktopRouting() {
-  const isDesktop = window.electronAPI && window.electronAPI.isNativeDesktop;
+  const isElectron = window.electronAPI && window.electronAPI.isNativeDesktop;
+  const isTauri = window.__TAURI__ !== undefined;
+  const isDesktop = isElectron || isTauri;
+
   if (isDesktop) {
     // Hide main landing-page navigation container
     const navPillGroup = document.querySelector('.nav-pill-group');
@@ -1208,6 +1211,56 @@ function checkDesktopRouting() {
         studioBtn.classList.add('active');
       }
     }
+
+    // Expose wallpaper setting control if executing inside Tauri context
+    if (isTauri) {
+      const desktopWallpaperGroup = document.getElementById('desktopWallpaperGroup');
+      if (desktopWallpaperGroup) {
+        desktopWallpaperGroup.style.display = 'block';
+      }
+    }
+  }
+}
+
+function setupNativeWallpaper() {
+  const btnApplyWallpaperNative = document.getElementById('btnApplyWallpaperNative');
+  if (btnApplyWallpaperNative) {
+    btnApplyWallpaperNative.onclick = async () => {
+      const originalText = btnApplyWallpaperNative.querySelector('span').innerText;
+      btnApplyWallpaperNative.querySelector('span').innerText = 'Applying...';
+      btnApplyWallpaperNative.disabled = true;
+
+      try {
+        const tempCanvas = document.createElement('canvas');
+        tempCanvas.width = 3840; // 4K Resolution
+        tempCanvas.height = 2160;
+        const tempCtx = tempCanvas.getContext('2d');
+        
+        drawPattern(
+          tempCtx, 
+          tempCanvas.width, 
+          tempCanvas.height, 
+          currentPattern, 
+          activePalettes[currentPalette], 
+          seed, 
+          zoomLevel, 
+          fitMode
+        );
+
+        const dataUrl = tempCanvas.toDataURL('image/png');
+
+        // Invoke Tauri core invoke command
+        const invoke = window.__TAURI__.core.invoke || window.__TAURI__.invoke;
+        const response = await invoke('set_desktop_wallpaper', { base64Data: dataUrl });
+        
+        alert(response);
+      } catch (err) {
+        alert("Failed to apply desktop wallpaper: " + err);
+      } finally {
+        btnApplyWallpaperNative.querySelector('span').innerText = originalText;
+        btnApplyWallpaperNative.disabled = false;
+      }
+    };
   }
 }
 
@@ -1267,6 +1320,7 @@ setInverted(true);
 setupViewNavigation();
 checkDesktopRouting();
 setupDesktopShortcuts();
+setupNativeWallpaper();
 setupComparisonSlider();
 setupFaqAccordion();
 setupHomeFilterBar();

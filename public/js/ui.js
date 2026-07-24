@@ -1191,3 +1191,15 @@ buildStyleGrid();
 buildPaletteRow();
 buildGalleryCategories();
 scheduleRender();
+
+// FADE OUT STARTUP LOADER ONCE EVERYTHING IS RENDERED AND STYLED
+window.addEventListener('load', () => {
+  const startupLoader = document.getElementById('startupLoaderScreen');
+  if (startupLoader) {
+    startupLoader.style.opacity = '0';
+    startupLoader.style.pointerEvents = 'none';
+    setTimeout(() => {
+      startupLoader.style.display = 'none';
+    }, 500);
+  }
+});

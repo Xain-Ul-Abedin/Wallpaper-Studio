@@ -74,37 +74,6 @@
   </div>
 
   <div class="header-right">
-    <!-- DOWNLOAD DESKTOP DROPDOWN -->
-    <div class="download-dropdown-container">
-      <button class="btn-download-app" id="btnDownloadApp">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-          <polyline points="7 10 12 15 17 10"></polyline>
-          <line x1="12" y1="15" x2="12" y2="3"></line>
-        </svg>
-        <span>Download App</span>
-      </button>
-      <div class="download-dropdown-menu" id="downloadDropdownMenu">
-        <a href="https://github.com/Xain-Ul-Abedin/Wallpaper-Studio/releases/download/v1.0.0/wallpaper-studio.Setup.1.0.0.exe" class="download-item" download>
-          <span class="os-name">Windows</span>
-          <span class="file-info">.exe installer • 93MB</span>
-        </a>
-        <a href="#" class="download-item disabled" onclick="event.preventDefault(); alert('macOS build is coming soon!');">
-          <span class="os-name">macOS</span>
-          <span class="file-info">.dmg installer • Coming Soon</span>
-        </a>
-        <a href="#" class="download-item disabled" onclick="event.preventDefault(); alert('Linux build is coming soon!');">
-          <span class="os-name">Linux</span>
-          <span class="file-info">.deb package • Coming Soon</span>
-        </a>
-        <div class="dropdown-divider"></div>
-        <a href="#" class="download-item disabled android-download" onclick="event.preventDefault(); alert('Android app is under development!');">
-          <span class="os-name">Android (Mobile)</span>
-          <span class="file-info">Google Play • Planned</span>
-        </a>
-      </div>
-    </div>
-
     <button class="site-theme-btn" id="siteThemeBtn" title="Toggle site theme">
       <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
         <circle cx="8" cy="8" r="3.5" stroke="currentColor" stroke-width="1.3"/>
@@ -343,6 +312,106 @@
         <div class="faq-content">
           <p>All math equations and HSL colors are calculated directly in your browser. No images are fetched from a server, meaning it runs entirely offline once loaded.</p>
         </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- DEDICATED DOWNLOAD SECTION -->
+  <section class="overview-download-section">
+    <div class="slider-header">
+      <span class="section-tag">COMPANION CLIENTS</span>
+      <h3 class="section-title">Get Wallpaper Studio Desktop</h3>
+      <p class="section-description">Download the native client for offline rendering, multi-monitor configuration, and direct-to-desktop wallpaper execution.</p>
+    </div>
+
+    <div class="download-cards-grid">
+      <!-- Windows Card -->
+      <div class="download-card">
+        <div class="download-card-header">
+          <svg class="os-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="3" width="18" height="18" rx="2"></rect>
+            <line x1="12" y1="3" x2="12" y2="21"></line>
+            <line x1="3" y1="12" x2="21" y2="12"></line>
+          </svg>
+          <div class="os-title-group">
+            <h4 class="download-os-title">Windows Edition</h4>
+            <span class="download-os-sub">x64 Architecture • NSIS Setup</span>
+          </div>
+        </div>
+        <div class="download-card-body">
+          <p class="download-card-text">Includes local procedural asset generation, native Electron client wrapper, and low-latency startup optimization.</p>
+          <span class="file-size-tag">93.4 MB • v1.0.0</span>
+        </div>
+        <a href="https://github.com/Xain-Ul-Abedin/Wallpaper-Studio/releases/download/v1.0.0/wallpaper-studio.Setup.1.0.0.exe" class="btn-download-action" download>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+          </svg>
+          <span>Download Installer</span>
+        </a>
+      </div>
+
+      <!-- macOS Card -->
+      <div class="download-card disabled">
+        <div class="download-card-header">
+          <svg class="os-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 18a8 8 0 1 1 8-8 8 8 0 0 1-8 8z"></path>
+            <path d="M12 6v6l4 2"></path>
+          </svg>
+          <div class="os-title-group">
+            <h4 class="download-os-title">macOS Edition</h4>
+            <span class="download-os-sub">Universal DMG Package</span>
+          </div>
+        </div>
+        <div class="download-card-body">
+          <p class="download-card-text">Fully compiled DMG client for Apple Silicon and Intel Macs. Includes background automation hooks.</p>
+          <span class="file-size-tag">Planned Release</span>
+        </div>
+        <button class="btn-download-action" disabled onclick="event.preventDefault(); alert('macOS build is coming soon!');">
+          <span>Coming Soon</span>
+        </button>
+      </div>
+
+      <!-- Linux Card -->
+      <div class="download-card disabled">
+        <div class="download-card-header">
+          <svg class="os-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 2L2 22h20L12 2zM12 6l7.5 13H4.5L12 6z"></path>
+          </svg>
+          <div class="os-title-group">
+            <h4 class="download-os-title">Linux Edition</h4>
+            <span class="download-os-sub">Debian .deb / AppImage</span>
+          </div>
+        </div>
+        <div class="download-card-body">
+          <p class="download-card-text">Native package configurations for major Linux distributions. Seamless desktop scaling integrations.</p>
+          <span class="file-size-tag">Planned Release</span>
+        </div>
+        <button class="btn-download-action" disabled onclick="event.preventDefault(); alert('Linux build is coming soon!');">
+          <span>Coming Soon</span>
+        </button>
+      </div>
+
+      <!-- Android Card -->
+      <div class="download-card disabled">
+        <div class="download-card-header">
+          <svg class="os-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect>
+            <line x1="12" y1="18" x2="12.01" y2="18"></line>
+          </svg>
+          <div class="os-title-group">
+            <h4 class="download-os-title">Android Client</h4>
+            <span class="download-os-sub">Google Play / APK Package</span>
+          </div>
+        </div>
+        <div class="download-card-body">
+          <p class="download-card-text">Procedural wallpaper calculations scaled dynamically to match high-density mobile displays and lock screens.</p>
+          <span class="file-size-tag">Static Placeholder</span>
+        </div>
+        <button class="btn-download-action" disabled onclick="event.preventDefault(); alert('Android app is under development!');">
+          <span>Planned</span>
+        </button>
       </div>
     </div>
   </section>

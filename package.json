@@ -1,6 +1,6 @@
 {
   "name": "wallpaper-studio",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Studio-grade 4K & iPhone Minimalist Wallpaper Generator Windows Desktop App",
   "main": "main_desktop.js",
   "scripts": {

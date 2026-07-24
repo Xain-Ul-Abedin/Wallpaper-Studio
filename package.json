@@ -5,7 +5,8 @@
   "main": "main_desktop.js",
   "scripts": {
     "start": "electron .",
-    "dist": "electron-builder -wml"
+    "dist": "electron-builder -wml",
+    "tauri": "tauri"
   },
   "build": {
     "appId": "com.wallpaperstudio.app",
@@ -42,6 +43,7 @@
   "author": "WallpaperStudio Team <team@wallpaperstudio.com>",
   "license": "MIT",
   "devDependencies": {
+    "@tauri-apps/cli": "^2.11.4",
     "electron": "^31.0.0",
     "electron-builder": "^26.15.3"
   }

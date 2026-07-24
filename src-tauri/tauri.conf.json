@@ -4,8 +4,10 @@
   "version": "0.1.0",
   "identifier": "com.wallpaperstudio.app",
   "build": {
-    "frontendDist": "../public",
-    "devUrl": "../public"
+    "beforeDevCommand": "npm --prefix ../app run dev",
+    "beforeBuildCommand": "npm --prefix ../app run build",
+    "frontendDist": "../app/dist",
+    "devUrl": "http://localhost:5173"
   },
   "app": {
     "windows": [

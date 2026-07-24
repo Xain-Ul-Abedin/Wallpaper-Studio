@@ -1567,12 +1567,32 @@ body.site-dark .black-dice-icon {
 .btn-action:active { transform: scale(0.96); }
 
 .palette-grid {
-  display: grid;
-  grid-template-columns: repeat(6, 1fr);
-  gap: 10px;
+  display: flex;
+  flex-direction: row;
+  gap: 12px;
+  overflow-x: auto;
+  white-space: nowrap;
+  width: 100%;
+  scrollbar-width: thin;
+  padding: 4px 4px 8px;
+}
+
+.palette-grid::-webkit-scrollbar {
+  height: 4px;
+}
+.palette-grid::-webkit-scrollbar-track {
+  background: transparent;
+}
+.palette-grid::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 10px;
+}
+.palette-grid::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
 }
 
 .palette-swatch {
+  flex: 0 0 52px;
   height: 32px;
   border-radius: 6px;
   border: 1.5px solid var(--border);
@@ -1595,6 +1615,7 @@ body.site-dark .black-dice-icon {
 .palette-swatch span { flex: 1; }
 
 .palette-swatch-add {
+  flex: 0 0 52px;
   height: 32px;
   border-radius: 6px;
   border: 2px dashed var(--accent);
@@ -2249,9 +2270,6 @@ body.site-dark .custom-modal-card-lg {
   .style-grid {
     grid-template-columns: repeat(3, 1fr);
   }
-  .palette-grid {
-    grid-template-columns: repeat(4, 1fr);
-  }
   .bento-grid {
     grid-template-columns: repeat(2, 1fr);
   }
@@ -2433,10 +2451,6 @@ body.site-dark .custom-modal-card-lg {
     grid-template-columns: repeat(3, 1fr);
   }
   
-  .palette-grid {
-    grid-template-columns: repeat(3, 1fr);
-  }
-  
   /* CUSTOM RESOLUTION MODAL MOBILE OVERHAUL */
   .custom-modal-card-lg {
     padding: 24px 18px;
@@ -2537,11 +2551,6 @@ body.site-dark .custom-modal-card-lg {
   
   .style-grid {
     grid-template-columns: repeat(3, 1fr);
-    gap: 8px;
-  }
-  
-  .palette-grid {
-    grid-template-columns: repeat(2, 1fr);
     gap: 8px;
   }
   

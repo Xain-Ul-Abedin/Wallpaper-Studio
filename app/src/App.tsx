@@ -9,6 +9,43 @@ import {
 import type { Palette, PatternType } from './utils/constants';
 import { drawPattern } from './utils/patterns';
 
+// ── COLOR MATHEMATICS INTERPOLATOR ──
+function generate10ShadePalette(c1: string, c2: string, c3: string): string[] {
+  const hexToRgb = (hex: string): [number, number, number] => [
+    parseInt(hex.slice(1, 3), 16),
+    parseInt(hex.slice(3, 5), 16),
+    parseInt(hex.slice(5, 7), 16)
+  ];
+
+  const rgbToHex = (r: number, g: number, b: number): string =>
+    `#${[r, g, b]
+      .map(x => Math.round(Math.max(0, Math.min(255, x))).toString(16).padStart(2, '0'))
+      .join('')}`;
+
+  const blend = (colorA: string, colorB: string, factor: number): string => {
+    const a = hexToRgb(colorA);
+    const b = hexToRgb(colorB);
+    return rgbToHex(
+      a[0] + (b[0] - a[0]) * factor,
+      a[1] + (b[1] - a[1]) * factor,
+      a[2] + (b[2] - a[2]) * factor
+    );
+  };
+
+  return [
+    c1,
+    blend(c1, c2, 0.35),
+    blend(c1, c2, 0.70),
+    c2,
+    blend(c2, c3, 0.35),
+    blend(c2, c3, 0.70),
+    c3,
+    blend(c3, '#ffffff', 0.35),
+    blend(c3, '#ffffff', 0.70),
+    '#ffffff'
+  ];
+}
+
 // ── TOOLTIP COMPONENT ──
 function Tooltip({ text, children }: { text: string; children: React.ReactNode }) {
   return (
@@ -96,8 +133,8 @@ export default function App() {
   const [zoomLevel, setZoomLevel] = useState<number>(100);
   const [fitMode, setFitMode] = useState<'crop' | 'fit'>('crop');
   const [deviceMode, setDeviceMode] = useState<'all' | 'desktop' | 'tablet' | 'mobile'>('all');
-  const [isInverted, setIsInverted] = useState<boolean>(false);
-  const [isLightTheme, setIsLightTheme] = useState<boolean>(true); // default matching body.site-light
+  const [isInverted, setIsInverted] = useState<boolean>(false); // Wallpaper theme mode (false = dark, true = light)
+  const [isLightTheme, setIsLightTheme] = useState<boolean>(true); // Application layout theme (site-light vs site-dark)
   
   // Custom palettes loaded from localStorage
   const [customPalettes, setCustomPalettes] = useState<Palette[]>(() => {
@@ -121,6 +158,15 @@ export default function App() {
   const [modalPresetIdx, setModalPresetIdx] = useState<number>(0);
   const [customWidth, setCustomWidth] = useState<number>(3840);
   const [customHeight, setCustomHeight] = useState<number>(2160);
+
+  // ── CUSTOM PALETTE STUDIO MODAL STATE ──
+  const [isPaletteModalActive, setIsPaletteModalActive] = useState<boolean>(false);
+  const [customPaletteName, setCustomPaletteName] = useState<string>("My Custom Palette");
+  const [colorPicker1, setColorPicker1] = useState<string>("#0f172a");
+  const [colorPicker2, setColorPicker2] = useState<string>("#334155");
+  const [colorPicker3, setColorPicker3] = useState<string>("#10b981");
+
+  const tempPaletteColors = generate10ShadePalette(colorPicker1, colorPicker2, colorPicker3);
 
   // ── TOAST NOTIFICATIONS ──
   const [toastMessage, setToastMessage] = useState<string>('');
@@ -146,6 +192,7 @@ export default function App() {
   const tabletCanvasRef = useRef<HTMLCanvasElement | null>(null);
   const mobileCanvasRef = useRef<HTMLCanvasElement | null>(null);
   const modalCanvasRef = useRef<HTMLCanvasElement | null>(null);
+  const palettePreviewCanvasRef = useRef<HTMLCanvasElement | null>(null);
 
   const activePalette = paletteIdx >= PALETTES.length
     ? customPalettes[paletteIdx - PALETTES.length]
@@ -210,6 +257,22 @@ export default function App() {
     
     drawPattern(ctx, canvas.width, canvas.height, PATTERNS[currentPattern], activePalette, seed, zoomLevel, fitMode, isInverted, customPalettes);
   }, [isCustomModalActive, customWidth, customHeight, currentPattern, paletteIdx, seed, zoomLevel, fitMode, isInverted]);
+
+  // ── PALETTE MODAL PREVIEW HOOK ──
+  useEffect(() => {
+    if (!isPaletteModalActive) return;
+    const canvas = palettePreviewCanvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    const tempPaletteObj: Palette = {
+      name: customPaletteName,
+      colors: tempPaletteColors
+    };
+
+    drawPattern(ctx, 360, 200, PATTERNS[currentPattern], tempPaletteObj, seed, 100, 'crop', isInverted, customPalettes);
+  }, [isPaletteModalActive, customPaletteName, colorPicker1, colorPicker2, colorPicker3, currentPattern, seed, isInverted]);
 
   // ── KEYBOARD SHORTCUTS ──
   useEffect(() => {
@@ -296,28 +359,17 @@ export default function App() {
     showToast(`Downloaded: ${fileName}`);
   };
 
-  const addCustomPalette = () => {
-    const hexInput = prompt("Enter a custom color palette (comma-separated hex codes, min 2 colors):", "#0f172a, #38bdf8, #f43f5e");
-    if (!hexInput) return;
-
-    const colors = hexInput.split(',')
-      .map(c => c.trim())
-      .filter(c => /^#[0-9A-F]{6}$/i.test(c));
-
-    if (colors.length < 2) {
-      alert("Invalid format! Please enter at least 2 valid hex codes starting with # (e.g. #000000).");
-      return;
-    }
-
+  const saveCustomPalette = () => {
     const newPalette: Palette = {
-      name: `Custom Palette ${customPalettes.length + 1}`,
-      colors
+      name: customPaletteName.trim() || `Palette ${customPalettes.length + 1}`,
+      colors: tempPaletteColors
     };
 
     const updated = [...customPalettes, newPalette];
     setCustomPalettes(updated);
     localStorage.setItem('ws_custom_palettes', JSON.stringify(updated));
     setPaletteIdx(PALETTES.length + updated.length - 1);
+    setIsPaletteModalActive(false);
     showToast("Custom palette added!");
   };
 
@@ -471,9 +523,9 @@ export default function App() {
                   <button
                     className="btn-open-in-studio"
                     onClick={() => {
-                      setCurrentPattern(0); // Flowing Hills
-                      setPaletteIdx(1); // Charcoal
-                      setFitMode('crop');
+                      setCurrentPattern(0);
+                      setPaletteIdx(1);
+                      setIsInverted(false); // Dark mode wallpaper default
                       setActiveTab('studio');
                     }}
                   >
@@ -532,7 +584,7 @@ export default function App() {
                                 onClick={() => {
                                   setCurrentPattern(row.patternIdx);
                                   setPaletteIdx(palIdx);
-                                  setFitMode('crop');
+                                  setIsInverted(false);
                                   setActiveTab('studio');
                                 }}
                               >
@@ -670,7 +722,7 @@ export default function App() {
                     <div className="control-header-row">
                       <div className="header-title-group" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                         <div className="control-label">Curated Color Palettes</div>
-                        <button className="btn-create-palette-header" onClick={addCustomPalette}>
+                        <button className="btn-create-palette-header" onClick={() => setIsPaletteModalActive(true)}>
                           + Add Palette
                         </button>
                       </div>
@@ -735,7 +787,7 @@ export default function App() {
 
               {/* Right Sidebar Controls */}
               <div className="controls">
-                <div className="control-group">
+                <div className="control-group" style={{ gap: '12px' }}>
                   <div className="control-label">
                     Pattern
                     <Tooltip text="Select the mathematical algorithm that generates the shapes.">
@@ -756,35 +808,10 @@ export default function App() {
                   </div>
                 </div>
 
-                <div className="control-group">
+                <div className="control-group" style={{ gap: '12px' }}>
                   <div className="control-label">
-                    Mode
-                    <Tooltip text="Toggle theme colors to fit bright or low light conditions.">
-                      <span className="info-icon">i</span>
-                    </Tooltip>
-                  </div>
-                  <div className="mode-toggle">
-                    <button
-                      className={`mode-btn ${!isLightTheme ? 'active' : ''}`}
-                      onClick={() => setIsLightTheme(false)}
-                    >
-                      <span className="mode-icon mode-icon-dark"></span>
-                      Dark
-                    </button>
-                    <button
-                      className={`mode-btn ${isLightTheme ? 'active' : ''}`}
-                      onClick={() => setIsLightTheme(true)}
-                    >
-                      <span className="mode-icon mode-icon-light"></span>
-                      Light
-                    </button>
-                  </div>
-                </div>
-
-                <div className="control-group">
-                  <div className="control-label">
-                    Direction
-                    <Tooltip text="Swaps background and foreground colors inside the design layers.">
+                    Wallpaper Mode
+                    <Tooltip text="Changes the wallpaper design appearance between light (inverted tones) and dark (normal tones).">
                       <span className="info-icon">i</span>
                     </Tooltip>
                   </div>
@@ -793,13 +820,15 @@ export default function App() {
                       className={`mode-btn ${!isInverted ? 'active' : ''}`}
                       onClick={() => setIsInverted(false)}
                     >
-                      Normal
+                      <span className="mode-icon mode-icon-dark"></span>
+                      Dark Wallpaper
                     </button>
                     <button
                       className={`mode-btn ${isInverted ? 'active' : ''}`}
                       onClick={() => setIsInverted(true)}
                     >
-                      Inverted
+                      <span className="mode-icon mode-icon-light"></span>
+                      Light Wallpaper
                     </button>
                   </div>
                 </div>
@@ -944,7 +973,7 @@ export default function App() {
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', marginBottom: '32px' }}>
               
-              {/* Keyboard shortcuts card */}
+              {/* Keyboard Shortcuts Card */}
               <div style={{ background: 'var(--card-bg)', border: '1.5px solid var(--border)', borderRadius: '12px', padding: '24px', boxShadow: 'var(--card-shadow)' }}>
                 <h3 style={{ fontSize: '1.2rem', fontWeight: 600, marginBottom: '16px' }}>Keyboard Shortcuts</h3>
                 <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '12px' }}>
@@ -959,7 +988,7 @@ export default function App() {
                 </ul>
               </div>
 
-              {/* Onboarding replay card */}
+              {/* Onboarding Replay Card */}
               <div style={{ background: 'var(--card-bg)', border: '1.5px solid var(--border)', borderRadius: '12px', padding: '24px', boxShadow: 'var(--card-shadow)', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
                 <div>
                   <h3 style={{ fontSize: '1.2rem', fontWeight: 600, marginBottom: '8px' }}>Interactive Guide</h3>
@@ -1090,6 +1119,81 @@ export default function App() {
                 <div className="preview-label">Live Device Aspect Preview</div>
                 <div className="custom-canvas-box">
                   <canvas ref={modalCanvasRef} width="380" height="214" />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── CUSTOM PALETTE STUDIO MODAL ── */}
+      {isPaletteModalActive && (
+        <div className="modal-overlay active" id="addPaletteModal" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 115 }}>
+          <div className="custom-modal-card-lg">
+            <button className="modal-close" onClick={() => setIsPaletteModalActive(false)}>&times;</button>
+            <h3>Custom Palette Studio</h3>
+            <p className="custom-modal-sub">Pick your Base, Mid, and Accent colors to generate a smooth 10-shade palette.</p>
+
+            <div className="custom-modal-body">
+              <div className="custom-inputs-column">
+                <div className="input-group">
+                  <label>Palette Name</label>
+                  <input
+                    type="text"
+                    value={customPaletteName}
+                    onChange={(e) => setCustomPaletteName(e.target.value)}
+                    className="custom-input"
+                  />
+                </div>
+
+                <div className="color-pickers-row" style={{ display: 'flex', gap: '12px', marginBottom: '16px' }}>
+                  <div className="picker-item" style={{ flex: 1 }}>
+                    <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '6px' }}>Base / Dark Tone</label>
+                    <input
+                      type="color"
+                      value={colorPicker1}
+                      onChange={(e) => setColorPicker1(e.target.value)}
+                      className="color-wheel-input"
+                    />
+                  </div>
+                  <div className="picker-item" style={{ flex: 1 }}>
+                    <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '6px' }}>Mid Tone</label>
+                    <input
+                      type="color"
+                      value={colorPicker2}
+                      onChange={(e) => setColorPicker2(e.target.value)}
+                      className="color-wheel-input"
+                    />
+                  </div>
+                  <div className="picker-item" style={{ flex: 1 }}>
+                    <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '6px' }}>Accent / Highlight</label>
+                    <input
+                      type="color"
+                      value={colorPicker3}
+                      onChange={(e) => setColorPicker3(e.target.value)}
+                      className="color-wheel-input"
+                    />
+                  </div>
+                </div>
+
+                <div className="palette-preview-strip-label" style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '6px' }}>
+                  Generated 10-Shade Palette Preview
+                </div>
+                <div className="palette-preview-strip">
+                  {tempPaletteColors.map((color, idx) => (
+                    <span key={idx} style={{ backgroundColor: color }} />
+                  ))}
+                </div>
+
+                <button className="modal-download-btn-fixed" onClick={saveCustomPalette} style={{ width: '100%' }}>
+                  Save & Apply Palette
+                </button>
+              </div>
+
+              <div className="custom-preview-column">
+                <div className="preview-label">Live Pattern Canvas Preview</div>
+                <div className="custom-canvas-box">
+                  <canvas ref={palettePreviewCanvasRef} width="360" height="200" />
                 </div>
               </div>
             </div>

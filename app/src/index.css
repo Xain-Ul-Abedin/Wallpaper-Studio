@@ -103,7 +103,7 @@ body.site-dark .page-transition-loader {
   width: 100%;
   max-width: 100%;
   margin-bottom: 0;
-  padding: 16px 24px;
+  padding: 16px 48px;
   position: relative;
   border-bottom: 1.5px solid var(--border);
   background: var(--card-bg);
@@ -1131,7 +1131,7 @@ body.site-dark .gallery-card:hover {
   width: 100%;
   height: calc(100vh - 72px);
   align-items: stretch;
-  padding: 24px;
+  padding: 24px 48px;
   overflow: hidden;
 }
 
@@ -3035,6 +3035,53 @@ body.site-dark .startup-logo-mark {
 .toast-icon {
   color: #10b981;
   flex-shrink: 0;
+}
+
+/* Hide scrollbars globally on layout sections */
+.controls::-webkit-scrollbar,
+.preview-area::-webkit-scrollbar,
+.category-cards-scroll-box::-webkit-scrollbar {
+  display: none !important;
+}
+
+.controls,
+.preview-area,
+.category-cards-scroll-box {
+  -ms-overflow-style: none !important;
+  scrollbar-width: none !important;
+}
+
+/* Ensure hovered scale effects are not clipped */
+.style-grid,
+.palette-grid,
+.category-cards-scroll-box,
+.preview-container {
+  overflow: visible !important;
+}
+
+/* Color Wheel input custom styles for Palette modal */
+.color-wheel-input {
+  width: 100%;
+  height: 40px;
+  border-radius: 8px;
+  border: 1.5px solid var(--border);
+  background: var(--card-bg);
+  cursor: pointer;
+  padding: 4px;
+}
+
+.palette-preview-strip {
+  display: flex;
+  height: 36px;
+  border-radius: 8px;
+  overflow: hidden;
+  margin-bottom: 16px;
+  border: 1px solid var(--border);
+}
+
+.palette-preview-strip span {
+  flex: 1;
+  height: 100%;
 }
 
 

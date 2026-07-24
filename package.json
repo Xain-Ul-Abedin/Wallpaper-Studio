@@ -5,7 +5,28 @@
   "main": "main_desktop.js",
   "scripts": {
     "start": "electron .",
-    "dist": "electron-builder --win nsis"
+    "dist": "electron-builder -wml"
+  },
+  "build": {
+    "appId": "com.wallpaperstudio.app",
+    "productName": "WallpaperStudio",
+    "directories": {
+      "output": "dist"
+    },
+    "win": {
+      "target": "nsis"
+    },
+    "mac": {
+      "target": "dmg",
+      "category": "public.app-category.graphics-design"
+    },
+    "linux": {
+      "target": [
+        "deb",
+        "AppImage"
+      ],
+      "category": "Graphics"
+    }
   },
   "keywords": [
     "wallpaper",

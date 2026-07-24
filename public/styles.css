@@ -2665,3 +2665,107 @@ body.site-dark .startup-logo-mark {
   text-transform: uppercase;
   letter-spacing: 0.12em;
 }
+
+/* ── DOWNLOAD DESKTOP DROPDOWN ── */
+.download-dropdown-container {
+  position: relative;
+  display: inline-block;
+}
+
+.btn-download-app {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background: var(--text);
+  color: var(--bg);
+  border: 1.5px solid var(--text);
+  border-radius: 100px;
+  font-family: 'Lexend', sans-serif;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
+}
+
+.btn-download-app:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(15, 23, 42, 0.16);
+  opacity: 0.95;
+}
+
+.download-dropdown-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  width: 220px;
+  background: var(--card-bg);
+  border: 1.5px solid var(--border);
+  border-radius: 14px;
+  padding: 6px;
+  box-shadow: var(--card-shadow);
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(8px);
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  z-index: 1000;
+}
+
+.download-dropdown-container:hover .download-dropdown-menu,
+.download-dropdown-container.active .download-dropdown-menu {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+.download-item {
+  display: flex;
+  flex-direction: column;
+  padding: 8px 12px;
+  border-radius: 10px;
+  text-decoration: none;
+  color: var(--text);
+  transition: all 0.2s ease;
+  text-align: left;
+}
+
+.download-item:hover:not(.disabled) {
+  background: var(--hover-bg);
+}
+
+.download-item .os-name {
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+.download-item .file-info {
+  font-size: 0.65rem;
+  color: var(--text-muted);
+  margin-top: 1px;
+}
+
+.download-item.disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.dropdown-divider {
+  height: 1px;
+  background: var(--border);
+  margin: 4px 6px;
+}
+
+@media (max-width: 768px) {
+  .btn-download-app span {
+    display: none;
+  }
+  .btn-download-app {
+    padding: 8px;
+    border-radius: 50%;
+  }
+}
+

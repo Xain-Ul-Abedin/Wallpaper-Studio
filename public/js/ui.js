@@ -742,7 +742,24 @@ function setupDropdownMenus() {
 
   document.addEventListener('click', () => {
     document.querySelectorAll('.ratio-menu').forEach(m => m.classList.remove('active'));
+    document.querySelector('.download-dropdown-container')?.classList.remove('active');
   });
+
+  // WIRE DOWNLOAD BUTTON TOGGLE ON MOBILE DEVICE
+  const dlBtn = document.getElementById('btnDownloadApp');
+  const dlContainer = dlBtn?.parentElement;
+  if (dlBtn && dlContainer) {
+    dlBtn.onclick = (e) => {
+      e.stopPropagation();
+      const isOpen = dlContainer.classList.contains('active');
+      document.querySelectorAll('.ratio-menu').forEach(m => m.classList.remove('active'));
+      if (!isOpen) {
+        dlContainer.classList.add('active');
+      } else {
+        dlContainer.classList.remove('active');
+      }
+    };
+  }
 }
 
 // DEVICE-BASED CUSTOM RESOLUTION PRESET DATA

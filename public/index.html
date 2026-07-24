@@ -74,6 +74,37 @@
   </div>
 
   <div class="header-right">
+    <!-- DOWNLOAD DESKTOP DROPDOWN -->
+    <div class="download-dropdown-container">
+      <button class="btn-download-app" id="btnDownloadApp">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+          <polyline points="7 10 12 15 17 10"></polyline>
+          <line x1="12" y1="15" x2="12" y2="3"></line>
+        </svg>
+        <span>Download App</span>
+      </button>
+      <div class="download-dropdown-menu" id="downloadDropdownMenu">
+        <a href="https://github.com/Xain-Ul-Abedin/Wallpaper-Studio/releases/download/v1.0.0/wallpaper-studio.Setup.1.0.0.exe" class="download-item" download>
+          <span class="os-name">Windows</span>
+          <span class="file-info">.exe installer • 93MB</span>
+        </a>
+        <a href="#" class="download-item disabled" onclick="event.preventDefault(); alert('macOS build is coming soon!');">
+          <span class="os-name">macOS</span>
+          <span class="file-info">.dmg installer • Coming Soon</span>
+        </a>
+        <a href="#" class="download-item disabled" onclick="event.preventDefault(); alert('Linux build is coming soon!');">
+          <span class="os-name">Linux</span>
+          <span class="file-info">.deb package • Coming Soon</span>
+        </a>
+        <div class="dropdown-divider"></div>
+        <a href="#" class="download-item disabled android-download" onclick="event.preventDefault(); alert('Android app is under development!');">
+          <span class="os-name">Android (Mobile)</span>
+          <span class="file-info">Google Play • Planned</span>
+        </a>
+      </div>
+    </div>
+
     <button class="site-theme-btn" id="siteThemeBtn" title="Toggle site theme">
       <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
         <circle cx="8" cy="8" r="3.5" stroke="currentColor" stroke-width="1.3"/>

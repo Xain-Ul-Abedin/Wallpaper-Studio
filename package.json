@@ -1,6 +1,6 @@
 {
   "name": "wallpaper-studio",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Studio-grade 4K & iPhone Minimalist Wallpaper Generator Windows Desktop App",
   "main": "main_desktop.js",
   "scripts": {
@@ -24,9 +24,11 @@
     },
     "linux": {
       "target": [
-        "deb"
+        "deb",
+        "AppImage"
       ],
       "category": "Graphics",
+      "maintainer": "WallpaperStudio Team <team@wallpaperstudio.com>",
       "artifactName": "WallpaperStudio-${version}.${ext}"
     }
   },
@@ -37,7 +39,7 @@
     "tauri",
     "electron"
   ],
-  "author": "WallpaperStudio Team",
+  "author": "WallpaperStudio Team <team@wallpaperstudio.com>",
   "license": "MIT",
   "devDependencies": {
     "electron": "^31.0.0",

@@ -1,31 +1,48 @@
 import { useState, useEffect, useRef } from 'react';
 import { invoke } from '@tauri-apps/api/core';
 import {
-  DESKTOP_W,
-  DESKTOP_H,
-  TABLET_W,
-  TABLET_H,
-  MOBILE_W,
-  MOBILE_H,
   PALETTES,
   PATTERNS,
-  PATTERN_LABELS
+  PATTERN_LABELS,
+  DEVICE_PRESETS
 } from './utils/constants';
 import type { Palette, PatternType } from './utils/constants';
 import { drawPattern } from './utils/patterns';
 
+// ── MINI CANVAS PATTERN SELECTOR COMPONENT ──
+interface MiniCanvasProps {
+  pattern: PatternType;
+  palette: Palette;
+  customPalettes: Palette[];
+}
+
+function MiniCanvas({ pattern, palette, customPalettes }: MiniCanvasProps) {
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    drawPattern(ctx, 70, 70, pattern, palette, 42, 100, 'crop', false, customPalettes);
+  }, [pattern, palette, customPalettes]);
+
+  return <canvas ref={canvasRef} width={70} height={70} style={{ width: '70px', height: '70px', display: 'block', borderRadius: '4px' }} />;
+}
+
 export default function App() {
   // ── CORE STATE ──
-  const [pattern, setPattern] = useState<PatternType>('flowing-hills');
+  const [currentPattern, setCurrentPattern] = useState<number>(0);
   const [paletteIdx, setPaletteIdx] = useState<number>(0);
   const [seed, setSeed] = useState<number>(12345);
-  const [zoom, setZoom] = useState<number>(100);
+  const [zoomLevel, setZoomLevel] = useState<number>(100);
   const [fitMode, setFitMode] = useState<'crop' | 'fit'>('crop');
-  const [deviceMode, setDeviceMode] = useState<'desktop' | 'tablet' | 'mobile'>('desktop');
+  const [deviceMode, setDeviceMode] = useState<'all' | 'desktop' | 'tablet' | 'mobile'>('all');
   const [isInverted, setIsInverted] = useState<boolean>(false);
-  const [isLightTheme, setIsLightTheme] = useState<boolean>(false);
+  const [isLightTheme, setIsLightTheme] = useState<boolean>(true); // default matching body.site-light
   
-  // Custom palettes state loaded from localStorage
+  // Custom palettes loaded from localStorage
   const [customPalettes, setCustomPalettes] = useState<Palette[]>(() => {
     try {
       const saved = localStorage.getItem('ws_custom_palettes');
@@ -34,6 +51,13 @@ export default function App() {
       return [];
     }
   });
+
+  // ── CUSTOM MODAL STATE ──
+  const [isCustomModalActive, setIsCustomModalActive] = useState<boolean>(false);
+  const [modalCategory, setModalCategory] = useState<string>('desktop');
+  const [modalPresetIdx, setModalPresetIdx] = useState<number>(0);
+  const [customWidth, setCustomWidth] = useState<number>(3840);
+  const [customHeight, setCustomHeight] = useState<number>(2160);
 
   // ── TOAST NOTIFICATIONS ──
   const [toastMessage, setToastMessage] = useState<string>('');
@@ -51,107 +75,136 @@ export default function App() {
     }, 3000);
   };
 
-  // ── THEME SWITCHER ──
-  const toggleTheme = () => {
-    const newTheme = !isLightTheme;
-    setIsLightTheme(newTheme);
-    if (newTheme) {
-      document.documentElement.classList.add('light');
+  // ── PREVIEW CANVAS REFS ──
+  const desktopCanvasRef = useRef<HTMLCanvasElement | null>(null);
+  const tabletCanvasRef = useRef<HTMLCanvasElement | null>(null);
+  const mobileCanvasRef = useRef<HTMLCanvasElement | null>(null);
+  const modalCanvasRef = useRef<HTMLCanvasElement | null>(null);
+
+  const activePalette = paletteIdx >= PALETTES.length
+    ? customPalettes[paletteIdx - PALETTES.length]
+    : PALETTES[paletteIdx];
+
+  // ── THEME MANAGER ──
+  useEffect(() => {
+    if (isLightTheme) {
+      document.body.classList.remove('site-dark');
+      document.body.classList.add('site-light');
     } else {
-      document.documentElement.classList.remove('light');
+      document.body.classList.remove('site-light');
+      document.body.classList.add('site-dark');
     }
-    showToast(`Switched to ${newTheme ? 'Light' : 'Dark'} Theme`);
-  };
+  }, [isLightTheme]);
 
-  // ── CANVAS REFERENCE & DRAWING ──
-  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  // ── REDRAW EVENT HOOK ──
+  useEffect(() => {
+    if (!activePalette) return;
 
-  // Retrieve width and height based on device mode
-  const getDimensions = () => {
-    switch (deviceMode) {
-      case 'desktop':
-        return { w: DESKTOP_W, h: DESKTOP_H };
-      case 'tablet':
-        return { w: TABLET_W, h: TABLET_H };
-      case 'mobile':
-        return { w: MOBILE_W, h: MOBILE_H };
+    if (deviceMode === 'all' || deviceMode === 'desktop') {
+      const canvas = desktopCanvasRef.current;
+      if (canvas) {
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+          drawPattern(ctx, 960, 540, PATTERNS[currentPattern], activePalette, seed, zoomLevel, fitMode, isInverted, customPalettes, 'desktop');
+        }
+      }
     }
-  };
 
-  const { w: nativeW, h: nativeH } = getDimensions();
+    if (deviceMode === 'all' || deviceMode === 'tablet') {
+      const canvas = tabletCanvasRef.current;
+      if (canvas) {
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+          drawPattern(ctx, 600, 800, PATTERNS[currentPattern], activePalette, seed, zoomLevel, fitMode, isInverted, customPalettes, 'tablet');
+        }
+      }
+    }
 
-  const redraw = () => {
-    const canvas = canvasRef.current;
+    if (deviceMode === 'all' || deviceMode === 'mobile') {
+      const canvas = mobileCanvasRef.current;
+      if (canvas) {
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+          drawPattern(ctx, 290, 628, PATTERNS[currentPattern], activePalette, seed, zoomLevel, fitMode, isInverted, customPalettes, 'mobile');
+        }
+      }
+    }
+  }, [currentPattern, paletteIdx, seed, zoomLevel, fitMode, deviceMode, isInverted, customPalettes]);
+
+  // ── MODAL ASPECT PREVIEW CANVAS HOOK ──
+  useEffect(() => {
+    if (!isCustomModalActive || !activePalette) return;
+    const canvas = modalCanvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    // Resolve active palette colors (custom or preset)
-    const activePalette = paletteIdx >= PALETTES.length
-      ? customPalettes[paletteIdx - PALETTES.length]
-      : PALETTES[paletteIdx];
+    canvas.width = 380;
+    canvas.height = Math.max(120, Math.round(380 * (customHeight / customWidth))) || 214;
+    
+    drawPattern(ctx, canvas.width, canvas.height, PATTERNS[currentPattern], activePalette, seed, zoomLevel, fitMode, isInverted, customPalettes);
+  }, [isCustomModalActive, customWidth, customHeight, currentPattern, paletteIdx, seed, zoomLevel, fitMode, isInverted]);
 
-    if (!activePalette) return;
-
-    drawPattern(
-      ctx,
-      nativeW,
-      nativeH,
-      pattern,
-      activePalette,
-      seed,
-      zoom,
-      fitMode,
-      isInverted,
-      customPalettes
-    );
-  };
-
-  useEffect(() => {
-    redraw();
-  }, [pattern, paletteIdx, seed, zoom, fitMode, deviceMode, isInverted, customPalettes]);
-
-  // ── HOTKEYS ──
+  // ── KEYBOARD SHORTCUTS ──
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      // Space to randomize seed
       if (e.code === 'Space' && e.target === document.body) {
         e.preventDefault();
         randomizeSeed();
       }
-      // Ctrl+S / Cmd+S to export
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') {
         e.preventDefault();
-        exportPNG();
-      }
-      // Ctrl+D / Cmd+D to toggle theme
-      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'd') {
-        e.preventDefault();
-        toggleTheme();
+        downloadWallpaper(3840, 2160, `Wallpaper-Desktop-${PATTERNS[currentPattern]}.png`);
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [seed, isLightTheme]);
+  }, [currentPattern, paletteIdx, seed, zoomLevel, fitMode, isInverted]);
 
-  // ── ACTIONS ──
+  // ── ACTION UTILITIES ──
   const randomizeSeed = () => {
-    const nextSeed = Math.floor(Math.random() * 9999999);
+    const nextSeed = Math.floor(Math.random() * 999999);
     setSeed(nextSeed);
-    showToast("Procedural seed randomized!");
+    showToast("Seed variation randomized!");
+  };
+
+  const runRandomizer = () => {
+    const nextPat = Math.floor(Math.random() * PATTERNS.length);
+    const nextPal = Math.floor(Math.random() * (PALETTES.length + customPalettes.length));
+    const nextInverted = Math.random() > 0.5;
+    const nextTheme = Math.random() > 0.5;
+
+    setCurrentPattern(nextPat);
+    setPaletteIdx(nextPal);
+    setIsInverted(nextInverted);
+    setIsLightTheme(nextTheme);
+    showToast("Complete layout randomized!");
   };
 
   const applyWallpaper = async () => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const base64Data = canvas.toDataURL('image/png');
+    const offscreen = document.createElement('canvas');
+    offscreen.width = 3840;
+    offscreen.height = 2160;
+    const ctx = offscreen.getContext('2d');
+    if (!ctx || !activePalette) return;
 
-    // Safe execution block checks for Tauri environment
+    drawPattern(ctx, 3840, 2160, PATTERNS[currentPattern], activePalette, seed, zoomLevel, fitMode, isInverted, customPalettes);
+    const base64Data = offscreen.toDataURL('image/png');
+
+    const electronAPI = (window as any).electronAPI;
     const isTauriEnv = (window as any).__TAURI_INTERNALS__ !== undefined || (window as any).__TAURI__ !== undefined;
 
-    if (isTauriEnv) {
+    if (electronAPI && typeof electronAPI.setWallpaper === 'function') {
       try {
-        showToast("Setting wallpaper...");
+        showToast("Applying wallpaper...");
+        await electronAPI.setWallpaper(base64Data);
+        showToast("Wallpaper successfully set!");
+      } catch (err) {
+        showToast("Error setting wallpaper: " + err);
+      }
+    } else if (isTauriEnv) {
+      try {
+        showToast("Applying wallpaper...");
         await invoke<string>('set_desktop_wallpaper', { base64Data });
         showToast("Wallpaper successfully set!");
       } catch (err) {
@@ -162,24 +215,21 @@ export default function App() {
     }
   };
 
-  const exportPNG = () => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const url = canvas.toDataURL('image/png');
+  const downloadWallpaper = (w: number, h: number, fileName: string) => {
+    if (!activePalette) return;
+    const offscreen = document.createElement('canvas');
+    offscreen.width = w;
+    offscreen.height = h;
+    const ctx = offscreen.getContext('2d');
+    if (!ctx) return;
+
+    drawPattern(ctx, w, h, PATTERNS[currentPattern], activePalette, seed, zoomLevel, fitMode, isInverted, customPalettes);
+    const url = offscreen.toDataURL('image/png');
     const link = document.createElement('a');
-    link.download = `Wallpaper-${pattern}-${seed}.png`;
+    link.download = fileName;
     link.href = url;
     link.click();
-    showToast("Wallpaper PNG exported successfully!");
-  };
-
-  const copyBase64 = () => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const url = canvas.toDataURL('image/png');
-    navigator.clipboard.writeText(url)
-      .then(() => showToast("Base64 string copied to clipboard!"))
-      .catch(() => showToast("Failed to copy string."));
+    showToast(`Downloaded: ${fileName}`);
   };
 
   const addCustomPalette = () => {
@@ -204,313 +254,486 @@ export default function App() {
     setCustomPalettes(updated);
     localStorage.setItem('ws_custom_palettes', JSON.stringify(updated));
     setPaletteIdx(PALETTES.length + updated.length - 1);
-    showToast("Custom palette added successfully!");
+    showToast("Custom palette added!");
   };
 
-  // ── VIEWPORT SIZE SCALE CALCULATION ──
-  const viewportStyle = () => {
-    const maxViewportW = 680;
-    const maxViewportH = 460;
-    const ratio = nativeW / nativeH;
-    
-    let displayW = maxViewportW;
-    let displayH = displayW / ratio;
+  // Dropdown states for each category
+  const [dropdownOpen, setDropdownOpen] = useState<string | null>(null);
 
-    if (displayH > maxViewportH) {
-      displayH = maxViewportH;
-      displayW = displayH * ratio;
-    }
+  // Manage preset selections inside the modal
+  const handleCategoryChange = (cat: string) => {
+    setModalCategory(cat);
+    setModalPresetIdx(0);
+    const list = DEVICE_PRESETS[cat] || DEVICE_PRESETS.desktop;
+    setCustomWidth(list[0].w);
+    setCustomHeight(list[0].h);
+  };
 
-    return {
-      width: `${Math.round(displayW)}px`,
-      height: `${Math.round(displayH)}px`
-    };
+  const handlePresetChange = (idx: number) => {
+    setModalPresetIdx(idx);
+    const list = DEVICE_PRESETS[modalCategory] || DEVICE_PRESETS.desktop;
+    setCustomWidth(list[idx].w);
+    setCustomHeight(list[idx].h);
   };
 
   return (
-    <div className="desktop-layout">
-      {/* ── COLUMN 1: LEFT CONTROLS ── */}
-      <aside className="sidebar sidebar-left">
-        <div className="sidebar-header">
-          <svg className="logo-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-            <rect x="3" y="3" width="18" height="18" rx="2"></rect>
-            <path d="M12 3v18"></path>
-            <path d="M3 12h18"></path>
-          </svg>
-          <h1 className="logo-title">Wallpaper Studio</h1>
-          <span className="logo-badge">App</span>
-        </div>
+    <main className="view-container active" id="viewStudio" style={{ padding: 0 }}>
+      <div className="main-layout">
+        
+        {/* ── LEFT PREVIEW AREA ── */}
+        <div className="preview-area">
+          <div className="preview-top-toolbar">
+            <div className="device-segmented-control">
+              <button
+                className={`device-tab ${deviceMode === 'all' ? 'active' : ''}`}
+                onClick={() => setDeviceMode('all')}
+              >
+                All Devices
+              </button>
+              <button
+                className={`device-tab ${deviceMode === 'desktop' ? 'active' : ''}`}
+                onClick={() => setDeviceMode('desktop')}
+              >
+                Desktop
+              </button>
+              <button
+                className={`device-tab ${deviceMode === 'tablet' ? 'active' : ''}`}
+                onClick={() => setDeviceMode('tablet')}
+              >
+                Tablet
+              </button>
+              <button
+                className={`device-tab ${deviceMode === 'mobile' ? 'active' : ''}`}
+                onClick={() => setDeviceMode('mobile')}
+              >
+                Mobile
+              </button>
+            </div>
 
-        <div className="sidebar-content">
-          {/* Pattern Picker */}
-          <div className="control-group">
-            <label className="control-label">Pattern Style</label>
-            <select
-              className="select-input"
-              value={pattern}
-              onChange={(e) => setPattern(e.target.value as PatternType)}
-            >
-              {PATTERNS.map(p => (
-                <option key={p} value={p}>{PATTERN_LABELS[p]}</option>
-              ))}
-            </select>
-          </div>
-
-          {/* Seed Input */}
-          <div className="control-group">
-            <label className="control-label">Procedural Seed</label>
-            <input
-              type="text"
-              className="text-input"
-              value={seed}
-              onChange={(e) => {
-                const parsed = parseInt(e.target.value);
-                setSeed(isNaN(parsed) ? 0 : parsed);
-              }}
-            />
-          </div>
-
-          {/* Zoom Level */}
-          <div className="control-group">
-            <label className="control-label">Zoom Scale</label>
-            <div className="slider-container">
-              <input
-                type="range"
-                className="range-input"
-                min="40"
-                max="180"
-                value={zoom}
-                onChange={(e) => setZoom(parseInt(e.target.value))}
-              />
-              <span className="slider-val">{zoom}%</span>
+            <div className="toolbar-right-actions">
+              <div className="zoom-crop-toolbar">
+                <button
+                  className={`action-pill-btn ${fitMode === 'crop' ? 'active' : ''}`}
+                  onClick={() => setFitMode('crop')}
+                >
+                  Crop
+                </button>
+                <button
+                  className={`action-pill-btn ${fitMode === 'fit' ? 'active' : ''}`}
+                  onClick={() => setFitMode('fit')}
+                >
+                  Fit
+                </button>
+                <div className="divider-v"></div>
+                <button
+                  className="icon-zoom-btn"
+                  onClick={() => setZoomLevel(Math.max(40, zoomLevel - 10))}
+                >
+                  -
+                </button>
+                <span className="zoom-percentage-badge">{zoomLevel}%</span>
+                <button
+                  className="icon-zoom-btn"
+                  onClick={() => setZoomLevel(Math.min(180, zoomLevel + 10))}
+                >
+                  +
+                </button>
+              </div>
             </div>
           </div>
 
-          {/* Fit Mode */}
-          <div className="control-group">
-            <label className="control-label">Fit Mode</label>
-            <select
-              className="select-input"
-              value={fitMode}
-              onChange={(e) => setFitMode(e.target.value as 'crop' | 'fit')}
-            >
-              <option value="crop">Crop Fill (Full bleed)</option>
-              <option value="fit">Scale to Fit</option>
-            </select>
+          {/* Previews container */}
+          <div className={`preview-container mode-${deviceMode}`}>
+            {(deviceMode === 'all' || deviceMode === 'desktop') && (
+              <div className="preview-desktop-wrap device-preview-card">
+                <div className="preview-label">Desktop 4K</div>
+                <canvas ref={desktopCanvasRef} width="960" height="540" />
+              </div>
+            )}
+
+            {(deviceMode === 'all' || deviceMode === 'tablet' || deviceMode === 'mobile') && (
+              <div className="preview-secondary-group">
+                {(deviceMode === 'all' || deviceMode === 'tablet') && (
+                  <div className="preview-tablet-wrap device-preview-card">
+                    <div className="preview-label">Tablet</div>
+                    <canvas ref={tabletCanvasRef} width="600" height="800" />
+                  </div>
+                )}
+
+                {(deviceMode === 'all' || deviceMode === 'mobile') && (
+                  <div className="preview-mobile-wrap device-preview-card">
+                    <div className="preview-label">Mobile</div>
+                    <canvas ref={mobileCanvasRef} width="290" height="628" />
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
-          {/* Color Modifiers */}
-          <div className="control-group">
-            <label className="control-label">Invert Palette Direction</label>
-            <button
-              className={`btn-action btn-secondary ${isInverted ? 'active' : ''}`}
-              onClick={() => setIsInverted(!isInverted)}
-              style={{
-                borderColor: isInverted ? 'var(--accent)' : '',
-                color: isInverted ? 'var(--text-h)' : ''
-              }}
-            >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M21 12A9 9 0 0 1 12 21a9.003 9.003 0 0 1-8.31-5.5"></path>
-                <path d="M22 2v6h-6"></path>
-                <path d="M21.26 15A9 9 0 0 0 12 3a9.003 9.003 0 0 0-8.31 5.5"></path>
-                <path d="M2 22v-6h6"></path>
-              </svg>
-              <span>{isInverted ? "Inverted Colors" : "Invert Palette"}</span>
-            </button>
-          </div>
+          {/* Bottom Palettes Bar */}
+          <div className="bottom-palette-bar">
+            <div className="control-group width-full">
+              <div className="control-header-row">
+                <div className="header-title-group" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <div className="control-label">Curated Color Palettes</div>
+                  <button className="btn-create-palette-header" onClick={addCustomPalette}>
+                    + Add Palette
+                  </button>
+                </div>
 
-          {/* Dark / Light Mode Switcher */}
-          <div className="control-group" style={{ marginTop: 'auto' }}>
-            <label className="control-label">Appearance</label>
-            <button className="btn-action btn-secondary" onClick={toggleTheme}>
-              {isLightTheme ? (
-                <>
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                    <circle cx="12" cy="12" r="4"></circle>
-                    <path d="M12 2v2"></path>
-                    <path d="M12 20v2"></path>
-                    <path d="M4.93 4.93l1.41 1.41"></path>
-                    <path d="M17.66 17.66l1.41 1.41"></path>
-                    <path d="M2 12h2"></path>
-                    <path d="M20 12h2"></path>
-                    <path d="M6.34 17.66l-1.41 1.41"></path>
-                    <path d="M19.07 4.93l-1.41 1.41"></path>
-                  </svg>
-                  <span>Light Theme</span>
-                </>
-              ) : (
-                <>
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"></path>
-                  </svg>
-                  <span>Dark Theme</span>
-                </>
-              )}
-            </button>
-          </div>
-        </div>
-      </aside>
+                <div className="variation-actions">
+                  <button className="btn-action simple-randomizer-btn" onClick={runRandomizer}>
+                    <svg className="black-dice-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <rect x="3" y="3" width="18" height="18" rx="4" ry="4"></rect>
+                      <circle cx="8.5" cy="8.5" r="1.5" fill="currentColor"></circle>
+                      <circle cx="15.5" cy="8.5" r="1.5" fill="currentColor"></circle>
+                      <circle cx="12" cy="12" r="1.5" fill="currentColor"></circle>
+                      <circle cx="8.5" cy="15.5" r="1.5" fill="currentColor"></circle>
+                      <circle cx="15.5" cy="15.5" r="1.5" fill="currentColor"></circle>
+                    </svg>
+                    <span className="randomizer-text">Randomizer</span>
+                  </button>
 
-      {/* ── COLUMN 2: CENTER VIEWPORT WORKSPACE ── */}
-      <main className="workspace">
-        <div className="workspace-header">
-          <div className="tabs-container">
-            <button
-              className={`tab-btn ${deviceMode === 'desktop' ? 'active' : ''}`}
-              onClick={() => setDeviceMode('desktop')}
-            >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
-                <line x1="8" y1="21" x2="16" y2="21"></line>
-                <line x1="12" y1="17" x2="12" y2="21"></line>
-              </svg>
-              <span>Desktop</span>
-            </button>
-            <button
-              className={`tab-btn ${deviceMode === 'tablet' ? 'active' : ''}`}
-              onClick={() => setDeviceMode('tablet')}
-            >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <rect x="4" y="2" width="16" height="20" rx="2" ry="2"></rect>
-                <line x1="12" y1="18" x2="12.01" y2="18"></line>
-              </svg>
-              <span>Tablet</span>
-            </button>
-            <button
-              className={`tab-btn ${deviceMode === 'mobile' ? 'active' : ''}`}
-              onClick={() => setDeviceMode('mobile')}
-            >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect>
-                <line x1="12" y1="18" x2="12.01" y2="18"></line>
-              </svg>
-              <span>iPhone</span>
-            </button>
-          </div>
+                  <button className="btn-action btn-variation" onClick={randomizeSeed}>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="23 4 23 10 17 10"></polyline>
+                      <polyline points="1 20 1 14 7 14"></polyline>
+                      <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+                    </svg>
+                    <span>Variation</span>
+                  </button>
+                </div>
+              </div>
 
-          <span className="resolution-indicator">{nativeW} × {nativeH} px</span>
-        </div>
-
-        <div className="viewport-area">
-          <div className="preview-wrapper" style={viewportStyle()}>
-            <canvas
-              ref={canvasRef}
-              className="preview-canvas"
-              width={nativeW}
-              height={nativeH}
-            />
-          </div>
-        </div>
-      </main>
-
-      {/* ── COLUMN 3: RIGHT PANEL (PALETTES & CTAS) ── */}
-      <aside className="sidebar sidebar-right">
-        <div className="sidebar-header">
-          <svg className="logo-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 14.7255 3.09032 17.1962 4.85857 19C5.03345 19.1766 5.09705 19.4312 5.02102 19.6724C4.81232 20.3344 4.54228 20.9575 4.21857 21.5323C4.05315 21.826 4.29828 22 4.63673 22H12Z"></path>
-            <circle cx="7.5" cy="10.5" r="1.5" fill="currentColor"></circle>
-            <circle cx="11.5" cy="7.5" r="1.5" fill="currentColor"></circle>
-            <circle cx="16.5" cy="9.5" r="1.5" fill="currentColor"></circle>
-            <circle cx="15.5" cy="14.5" r="1.5" fill="currentColor"></circle>
-          </svg>
-          <h2 className="logo-title" style={{ fontSize: '1rem' }}>Aesthetics</h2>
-        </div>
-
-        <div className="sidebar-content">
-          {/* Preset Palettes */}
-          <div className="control-group">
-            <label className="control-label">Color Swatches</label>
-            <div className="palette-grid">
-              {PALETTES.map((p, idx) => (
-                <button
-                  key={idx}
-                  className={`palette-swatch ${paletteIdx === idx ? 'active' : ''}`}
-                  onClick={() => setPaletteIdx(idx)}
-                  title={p.name}
-                >
-                  {p.colors.slice(0, 4).map((c, cidx) => (
-                    <span key={cidx} style={{ backgroundColor: c }} />
-                  ))}
-                </button>
-              ))}
-
-              {customPalettes.map((p, idx) => {
-                const globalIdx = PALETTES.length + idx;
-                return (
+              {/* Swatches ribbon grid */}
+              <div className="palette-grid">
+                {PALETTES.map((p, idx) => (
                   <button
-                    key={globalIdx}
-                    className={`palette-swatch ${paletteIdx === globalIdx ? 'active' : ''}`}
-                    onClick={() => setPaletteIdx(globalIdx)}
+                    key={idx}
+                    className={`palette-swatch ${paletteIdx === idx ? 'active' : ''}`}
+                    onClick={() => setPaletteIdx(idx)}
                     title={p.name}
                   >
                     {p.colors.slice(0, 4).map((c, cidx) => (
                       <span key={cidx} style={{ backgroundColor: c }} />
                     ))}
                   </button>
-                );
-              })}
+                ))}
 
+                {customPalettes.map((p, idx) => {
+                  const globalIdx = PALETTES.length + idx;
+                  return (
+                    <button
+                      key={globalIdx}
+                      className={`palette-swatch ${paletteIdx === globalIdx ? 'active' : ''}`}
+                      onClick={() => setPaletteIdx(globalIdx)}
+                      title={p.name}
+                    >
+                      {p.colors.slice(0, 4).map((c, cidx) => (
+                        <span key={cidx} style={{ backgroundColor: c }} />
+                      ))}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* ── RIGHT CONTROLS SIDEBAR ── */}
+        <div className="controls">
+          <div className="control-group">
+            <div className="control-label">Pattern</div>
+            <div className="style-grid">
+              {PATTERNS.map((p, idx) => (
+                <button
+                  key={p}
+                  className={`style-btn ${currentPattern === idx ? 'active' : ''}`}
+                  onClick={() => setCurrentPattern(idx)}
+                  title={PATTERN_LABELS[p]}
+                >
+                  <MiniCanvas pattern={p} palette={activePalette} customPalettes={customPalettes} />
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="control-group">
+            <div className="control-label">Mode</div>
+            <div className="mode-toggle">
               <button
-                className="palette-swatch-add"
-                onClick={addCustomPalette}
-                title="Add Custom Palette"
+                className={`mode-btn ${!isLightTheme ? 'active' : ''}`}
+                onClick={() => setIsLightTheme(false)}
               >
-                +
+                <span className="mode-icon mode-icon-dark"></span>
+                Dark
+              </button>
+              <button
+                className={`mode-btn ${isLightTheme ? 'active' : ''}`}
+                onClick={() => setIsLightTheme(true)}
+              >
+                <span className="mode-icon mode-icon-light"></span>
+                Light
               </button>
             </div>
           </div>
 
-          <div style={{ marginTop: 'auto', display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            {/* Seed Randomizer */}
-            <button className="btn-action btn-secondary" onClick={randomizeSeed}>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"></path>
-              </svg>
-              <span>Randomize (Space)</span>
-            </button>
+          {/* Color Invert option */}
+          <div className="control-group">
+            <div className="control-label">Direction</div>
+            <div className="mode-toggle">
+              <button
+                className={`mode-btn ${!isInverted ? 'active' : ''}`}
+                onClick={() => setIsInverted(false)}
+              >
+                Normal
+              </button>
+              <button
+                className={`mode-btn ${isInverted ? 'active' : ''}`}
+                onClick={() => setIsInverted(true)}
+              >
+                Inverted
+              </button>
+            </div>
+          </div>
 
-            {/* Copy base64 string */}
-            <button className="btn-action btn-secondary" onClick={copyBase64}>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+          {/* Native apply desktop active wallpaper wrapper */}
+          <div className="control-group native-wallpaper-group" style={{ display: 'block', marginTop: '10px' }}>
+            <div className="control-label">Desktop Wallpaper</div>
+            <button className="btn-custom-export-prominent text-center w-full" onClick={applyWallpaper} style={{ background: 'var(--accent)', color: 'var(--bg)', border: '1.5px solid var(--accent)' }}>
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="3" y="3" width="18" height="12" rx="2" ry="2"></rect>
+                <line x1="12" y1="15" x2="12" y2="21"></line>
+                <line x1="8" y1="21" x2="16" y2="21"></line>
               </svg>
-              <span>Copy Base64 URL</span>
-            </button>
-
-            {/* Export Wallpaper file */}
-            <button className="btn-action btn-secondary" onClick={exportPNG}>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                <polyline points="7 10 12 15 17 10"></polyline>
-                <line x1="12" y1="15" x2="12" y2="3"></line>
-              </svg>
-              <span>Export PNG (Ctrl+S)</span>
-            </button>
-
-            {/* Apply active wallpaper natively */}
-            <button className="btn-action" onClick={applyWallpaper}>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-                <line x1="9" y1="3" x2="9" y2="21"></line>
-                <line x1="15" y1="3" x2="15" y2="21"></line>
-                <line x1="3" y1="9" x2="21" y2="9"></line>
-                <line x1="3" y1="15" x2="21" y2="15"></line>
-              </svg>
-              <span>Set Active Wallpaper</span>
+              <span>Apply as Active Wallpaper</span>
             </button>
           </div>
-        </div>
-      </aside>
 
-      {/* ── TOAST TO NOTIFY NATIVE ACTIONS ── */}
+          {/* Export resolutions dropdown selectors */}
+          <div className="control-group export-group" style={{ marginTop: '20px' }}>
+            <div className="control-label">Export Resolutions</div>
+            <button className="btn-custom-export-prominent" onClick={() => setIsCustomModalActive(true)}>
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="3"></circle>
+                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+              </svg>
+              <span>Custom Resolution & Units...</span>
+            </button>
+
+            {/* Desktop dropdown */}
+            <div className="export-dropdown-wrapper">
+              <div className="split-export-btn">
+                <button
+                  className="btn-export btn-main"
+                  onClick={() => downloadWallpaper(5760, 3240, `wallpaper-desktop-5760x3240-${seed}.png`)}
+                >
+                  <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
+                    <path d="M8 2v8M5 7l3 3 3-3M3 12h10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                  Download Desktop
+                </button>
+                <button
+                  className={`btn-export-arrow ${dropdownOpen === 'desktop' ? 'active' : ''}`}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setDropdownOpen(dropdownOpen === 'desktop' ? null : 'desktop');
+                  }}
+                >
+                  <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                    <path d="M3 4.5l3 3 3-3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                </button>
+              </div>
+              {dropdownOpen === 'desktop' && (
+                <div className="ratio-menu active" style={{ display: 'block' }}>
+                  <button onClick={() => downloadWallpaper(5760, 3240, `wallpaper-desktop-5760x3240-${seed}.png`)}>5760 x 3240 (1.5x 4K)</button>
+                  <button onClick={() => downloadWallpaper(3840, 2160, `wallpaper-desktop-3840x2160-${seed}.png`)}>3840 x 2160 (4K UHD)</button>
+                  <button onClick={() => downloadWallpaper(2560, 1440, `wallpaper-desktop-2560x1440-${seed}.png`)}>2560 x 1440 (2K QHD)</button>
+                  <button onClick={() => downloadWallpaper(1920, 1080, `wallpaper-desktop-1920x1080-${seed}.png`)}>1920 x 1080 (FHD)</button>
+                </div>
+              )}
+              <div className="size-hint">5760 x 3240 px (1.5x 4K)</div>
+            </div>
+
+            {/* Tablet dropdown */}
+            <div className="export-dropdown-wrapper">
+              <div className="split-export-btn">
+                <button
+                  className="btn-export btn-main"
+                  onClick={() => downloadWallpaper(3096, 4128, `wallpaper-tablet-3096x4128-${seed}.png`)}
+                >
+                  <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
+                    <path d="M8 2v8M5 7l3 3 3-3M3 12h10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                  Download Tablet
+                </button>
+                <button
+                  className={`btn-export-arrow ${dropdownOpen === 'tablet' ? 'active' : ''}`}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setDropdownOpen(dropdownOpen === 'tablet' ? null : 'tablet');
+                  }}
+                >
+                  <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                    <path d="M3 4.5l3 3 3-3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                </button>
+              </div>
+              {dropdownOpen === 'tablet' && (
+                <div className="ratio-menu active" style={{ display: 'block' }}>
+                  <button onClick={() => downloadWallpaper(3096, 4128, `wallpaper-tablet-3096x4128-${seed}.png`)}>3096 x 4128 (1.5x Tablet)</button>
+                  <button onClick={() => downloadWallpaper(2064, 2752, `wallpaper-tablet-2064x2752-${seed}.png`)}>2064 x 2752 (iPad Pro 13")</button>
+                  <button onClick={() => downloadWallpaper(1640, 2360, `wallpaper-tablet-1640x2360-${seed}.png`)}>1640 x 2360 (iPad Air 11")</button>
+                </div>
+              )}
+              <div className="size-hint">3096 x 4128 px (1.5x Tablet)</div>
+            </div>
+
+            {/* Mobile dropdown */}
+            <div className="export-dropdown-wrapper">
+              <div className="split-export-btn">
+                <button
+                  className="btn-export btn-main"
+                  onClick={() => downloadWallpaper(1935, 4194, `wallpaper-mobile-1935x4194-${seed}.png`)}
+                >
+                  <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
+                    <path d="M8 2v8M5 7l3 3 3-3M3 12h10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                  Download Mobile
+                </button>
+                <button
+                  className={`btn-export-arrow ${dropdownOpen === 'mobile' ? 'active' : ''}`}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setDropdownOpen(dropdownOpen === 'mobile' ? null : 'mobile');
+                  }}
+                >
+                  <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                    <path d="M3 4.5l3 3 3-3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                </button>
+              </div>
+              {dropdownOpen === 'mobile' && (
+                <div className="ratio-menu active" style={{ display: 'block' }}>
+                  <button onClick={() => downloadWallpaper(1935, 4194, `wallpaper-mobile-1935x4194-${seed}.png`)}>1935 x 4194 (1.5x Mobile)</button>
+                  <button onClick={() => downloadWallpaper(1290, 2796, `wallpaper-mobile-1290x2796-${seed}.png`)}>1290 x 2796 (iPhone 16 Pro Max)</button>
+                  <button onClick={() => downloadWallpaper(1179, 2556, `wallpaper-mobile-1179x2556-${seed}.png`)}>1179 x 2556 (iPhone 16 Pro)</button>
+                </div>
+              )}
+              <div className="size-hint">1935 x 4194 px (1.5x Mobile)</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* ── DEVICE-BASED CUSTOM RESOLUTION GENERATOR MODAL ── */}
+      {isCustomModalActive && (
+        <div className="modal-overlay active" id="customModal" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div className="custom-modal-card-lg">
+            <button className="modal-close" onClick={() => setIsCustomModalActive(false)}>&times;</button>
+            <h3>Device-Based Custom Resolution Generator</h3>
+            <p className="custom-modal-sub">Select your target device category or input custom dimensions.</p>
+
+            <div className="custom-modal-body">
+              <div className="custom-inputs-column">
+                <div className="input-group">
+                  <label>Target Device Category</label>
+                  <select
+                    className="custom-select"
+                    value={modalCategory}
+                    onChange={(e) => handleCategoryChange(e.target.value)}
+                  >
+                    <option value="desktop">Desktop Monitors & Displays</option>
+                    <option value="tablet">Tablets & iPads</option>
+                    <option value="mobile">Mobile Devices & Smartphones</option>
+                    <option value="print">Print & Physical Media (300 DPI)</option>
+                    <option value="custom">Custom Dimensions</option>
+                  </select>
+                </div>
+
+                {modalCategory !== 'custom' && (
+                  <div className="input-group" id="devicePresetGroup">
+                    <label>Device Preset</label>
+                    <select
+                      className="custom-select"
+                      value={modalPresetIdx}
+                      onChange={(e) => handlePresetChange(parseInt(e.target.value))}
+                    >
+                      {(DEVICE_PRESETS[modalCategory] || DEVICE_PRESETS.desktop).map((p, idx) => (
+                        <option key={idx} value={idx}>{p.name}</option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+
+                <div className="input-row">
+                  <div className="input-group">
+                    <label id="widthLabel">Width (px)</label>
+                    <input
+                      type="number"
+                      value={customWidth}
+                      onChange={(e) => {
+                        setCustomWidth(parseInt(e.target.value) || 100);
+                        setModalCategory('custom');
+                      }}
+                      min="100"
+                      max="10000"
+                      className="custom-input"
+                    />
+                  </div>
+                  <div className="input-group">
+                    <label id="heightLabel">Height (px)</label>
+                    <input
+                      type="number"
+                      value={customHeight}
+                      onChange={(e) => {
+                        setCustomHeight(parseInt(e.target.value) || 100);
+                        setModalCategory('custom');
+                      }}
+                      min="100"
+                      max="10000"
+                      className="custom-input"
+                    />
+                  </div>
+                </div>
+
+                <div className="calculated-info">
+                  Target Output: {customWidth} x {customHeight} pixels
+                </div>
+
+                <button
+                  className="modal-download-btn-fixed"
+                  onClick={() => {
+                    downloadWallpaper(customWidth, customHeight, `wallpaper-custom-${customWidth}x${customHeight}-${seed}.png`);
+                    setIsCustomModalActive(false);
+                  }}
+                >
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                    <path d="M8 2v8M5 7l3 3 3-3M3 12h10" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                  <span>Download Custom Device Wallpaper</span>
+                </button>
+              </div>
+
+              <div className="custom-preview-column">
+                <div className="preview-label">Live Device Aspect Preview</div>
+                <div className="custom-canvas-box">
+                  <canvas ref={modalCanvasRef} width="380" height="214" />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── TOAST NOTIFICATIONS ── */}
       <div className={`toast-notification ${isToastVisible ? 'visible' : ''}`}>
         <svg className="toast-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
           <polyline points="20 6 9 17 4 12"></polyline>
         </svg>
         <span>{toastMessage}</span>
       </div>
-    </div>
+    </main>
   );
 }

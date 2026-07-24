@@ -319,7 +319,8 @@ export function drawPattern(
   zoomLevel = 100,
   fitMode: 'crop' | 'fit' = 'crop',
   isInverted = false,
-  customPalettes: Palette[] = []
+  customPalettes: Palette[] = [],
+  clockType?: 'desktop' | 'tablet' | 'mobile'
 ) {
   const rng = mulberry32(seed);
   ctx.fillStyle = getBgColor(palette, isInverted, customPalettes);
@@ -359,4 +360,45 @@ export function drawPattern(
   }
 
   ctx.restore();
+
+  if (clockType) {
+    drawClockOverlay(ctx, w, h, clockType, palette, isInverted, customPalettes);
+  }
+}
+
+function drawClockOverlay(
+  ctx: CanvasRenderingContext2D,
+  w: number,
+  h: number,
+  type: 'desktop' | 'tablet' | 'mobile',
+  palette: number | Palette,
+  isInverted: boolean,
+  customPalettes: Palette[] = []
+) {
+  const bg = getBgColor(palette, isInverted, customPalettes);
+  const r = parseInt(bg.slice(1, 3), 16);
+  const g = parseInt(bg.slice(3, 5), 16);
+  const b = parseInt(bg.slice(5, 7), 16);
+  const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+  
+  ctx.fillStyle = brightness > 125 ? 'rgba(0, 0, 0, 0.75)' : 'rgba(255, 255, 255, 0.9)';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+
+  if (type === 'desktop') {
+    ctx.font = '300 13px Lexend, sans-serif';
+    ctx.fillText('Sunday, June 14', w / 2, h * 0.22);
+    ctx.font = '600 54px Lexend, sans-serif';
+    ctx.fillText('09:41', w / 2, h * 0.30);
+  } else if (type === 'tablet') {
+    ctx.font = '400 20px Lexend, sans-serif';
+    ctx.fillText('Sunday, June 14', w / 2, h * 0.18);
+    ctx.font = '600 72px Lexend, sans-serif';
+    ctx.fillText('09:41', w / 2, h * 0.27);
+  } else if (type === 'mobile') {
+    ctx.font = '500 12px Lexend, sans-serif';
+    ctx.fillText('SUNDAY, JUNE 14', w / 2, h * 0.16);
+    ctx.font = '700 64px Lexend, sans-serif';
+    ctx.fillText('09:41', w / 2, h * 0.26);
+  }
 }

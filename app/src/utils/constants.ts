@@ -44,3 +44,42 @@ export const PATTERN_LABELS: Record<PatternType, string> = {
   'concentric-arcs': 'Concentric Arcs',
   'desert-dunes': 'Desert Dunes'
 };
+
+export interface DevicePresetItem {
+  name: string;
+  w: number;
+  h: number;
+}
+
+export const DEVICE_PRESETS: Record<string, DevicePresetItem[]> = {
+  desktop: [
+    { name: '4K UHD (3840 x 2160 - 16:9)', w: 3840, h: 2160 },
+    { name: '5K Retina (5120 x 2880 - 16:9)', w: 5120, h: 2880 },
+    { name: '1.5x 4K Master (5760 x 3240 - 16:9)', w: 5760, h: 3240 },
+    { name: '2K QHD (2560 x 1440 - 16:9)', w: 2560, h: 1440 },
+    { name: 'Ultrawide Monitor (3440 x 1440 - 21:9)', w: 3440, h: 1440 },
+    { name: 'FHD Standard (1920 x 1080 - 16:9)', w: 1920, h: 1080 }
+  ],
+  tablet: [
+    { name: '1.5x Tablet Master (3096 x 4128 - 3:4)', w: 3096, h: 4128 },
+    { name: 'iPad Pro 13" (2064 x 2752 - 3:4)', w: 2064, h: 2752 },
+    { name: 'iPad Air 11" (1640 x 2360 - 1:1.43)', w: 1640, h: 2360 },
+    { name: 'Samsung Galaxy Tab S9 (1752 x 2800 - 16:10)', w: 1752, h: 2800 },
+    { name: 'Microsoft Surface Pro (1920 x 2880 - 3:2)', w: 1920, h: 2880 }
+  ],
+  mobile: [
+    { name: '1.5x Mobile Master (1935 x 4194 - 9:19.5)', w: 1935, h: 4194 },
+    { name: 'iPhone 16 Pro Max (1290 x 2796 - 9:19.5)', w: 1290, h: 2796 },
+    { name: 'iPhone 16 Pro / 15 (1179 x 2556 - 9:19.5)', w: 1179, h: 2556 },
+    { name: 'Samsung Galaxy S24 Ultra (1440 x 3120 - 9:19.5)', w: 1440, h: 3120 },
+    { name: 'Google Pixel 9 Pro (1280 x 2856 - 9:20)', w: 1280, h: 2856 }
+  ],
+  print: [
+    { name: '12" x 8" Canvas Print (3600 x 2400 @ 300 DPI)', w: 3600, h: 2400 },
+    { name: 'A4 Poster Print (3508 x 2480 @ 300 DPI)', w: 3508, h: 2480 },
+    { name: '4" x 6" Photo Print (1800 x 1200 @ 300 DPI)', w: 1800, h: 1200 }
+  ],
+  custom: [
+    { name: 'Custom User Dimensions', w: 3840, h: 2160 }
+  ]
+};

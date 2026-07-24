@@ -380,8 +380,12 @@ function buildGalleryCategories() {
         <div class="category-sub">${cat.sub}</div>
       </div>
       <div class="carousel-controls">
-        <button class="btn-carousel-nav nav-prev" title="Scroll Left">&larr;</button>
-        <button class="btn-carousel-nav nav-next" title="Scroll Right">&rarr;</button>
+        <button class="btn-carousel-nav nav-prev" title="Scroll Left">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+        </button>
+        <button class="btn-carousel-nav nav-next" title="Scroll Right">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+        </button>
       </div>
     `;
 

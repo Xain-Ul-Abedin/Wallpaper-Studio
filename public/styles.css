@@ -24,6 +24,7 @@ body.site-dark {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
 }
 
 body {
@@ -940,6 +941,11 @@ body.site-dark .demo-video-wrapper {
   justify-content: center;
   transition: all 0.2s ease;
   box-shadow: var(--card-shadow);
+}
+
+.btn-carousel-nav svg {
+  display: block;
+  flex-shrink: 0;
 }
 
 .btn-carousel-nav:hover {
@@ -2254,8 +2260,9 @@ body.site-dark .custom-modal-card-lg {
   }
 
   .featured-hero-banner {
-    aspect-ratio: 16 / 9;
-    max-height: 280px;
+    aspect-ratio: auto;
+    min-height: 380px;
+    height: auto;
   }
 
   .featured-overlay-content {

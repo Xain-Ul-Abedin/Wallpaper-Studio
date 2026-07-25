@@ -44,22 +44,28 @@ ipcMain.handle('set-wallpaper', async (event, base64Data) => {
     fs.writeFileSync(tempPath, buffer);
 
     if (process.platform === 'win32') {
-      const psCommand = `
-        Add-Type -TypeDefinition "
-        using System;
-        using System.Runtime.InteropServices;
-        public class Wallpaper {
-            [DllImport(\\"user32.dll\\", CharSet = CharSet.Auto)]
-            public static extern int SystemParametersInfo(int uAction, int uParam, string lpvParam, int fuWinIni);
-        }
-        "
-        [Wallpaper]::SystemParametersInfo(20, 0, "${tempPath.replace(/\\/g, '\\\\')}", 3)
+      const ps1Path = path.join(app.getPath('temp'), 'set_wallpaper.ps1');
+      const ps1Content = `
+Add-Type -TypeDefinition @"
+using System;
+using System.Runtime.InteropServices;
+public class Wallpaper {
+    [DllImport("user32.dll", CharSet = CharSet.Auto)]
+    public static extern int SystemParametersInfo(int uAction, int uParam, string lpvParam, int fuWinIni);
+}
+"@
+[Wallpaper]::SystemParametersInfo(20, 0, "${tempPath.replace(/\\/g, '\\\\')}", 3)
       `;
+      fs.writeFileSync(ps1Path, ps1Content, 'utf-8');
       
       return new Promise((resolve, reject) => {
-        exec(`powershell -NoProfile -Command "${psCommand.replace(/\n/g, ' ')}"`, (err) => {
-          if (err) reject(err);
-          else resolve('Wallpaper applied successfully via Win32!');
+        exec(`powershell -NoProfile -ExecutionPolicy Bypass -File "${ps1Path}"`, (err, stdout, stderr) => {
+          try { fs.unlinkSync(ps1Path); } catch (_) {}
+          if (err) {
+            reject(new Error(stderr || err.message));
+          } else {
+            resolve('Wallpaper applied successfully via Win32!');
+          }
         });
       });
     } else {

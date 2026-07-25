@@ -1609,7 +1609,10 @@ body.site-dark .black-dice-icon {
   box-shadow: 0 0 0 1.5px var(--accent);
 }
 
-.palette-swatch span { flex: 1; }
+.palette-swatch span {
+  flex: 1;
+  height: 100%;
+}
 
 .palette-swatch-add {
   height: 32px;
@@ -3307,6 +3310,90 @@ body.site-dark .startup-logo-mark {
   height: 100%;
   border-radius: 50%;
   display: block;
+}
+
+/* Startup Welcome Screen overlay */
+.welcome-screen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: #09090b;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  opacity: 1;
+  visibility: visible;
+  transition: opacity 0.4s ease, visibility 0.4s ease;
+}
+
+.welcome-screen.fade-out {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.welcome-logo-mark {
+  background: #ffffff;
+  color: #09090b;
+  font-size: 1.8rem;
+  font-weight: 800;
+  letter-spacing: 0.15em;
+  padding: 14px 24px;
+  border-radius: 12px;
+  line-height: 1;
+  box-shadow: 0 0 40px rgba(255, 255, 255, 0.15);
+  animation: logoPulse 1.8s infinite ease-in-out;
+  margin-bottom: 24px;
+}
+
+.welcome-title {
+  font-family: 'Lexend', sans-serif;
+  font-size: 1.4rem;
+  font-weight: 600;
+  color: #ffffff;
+  letter-spacing: 0.05em;
+  margin-bottom: 8px;
+}
+
+.welcome-subtitle {
+  font-family: 'Lexend', sans-serif;
+  font-size: 0.85rem;
+  color: #a1a1aa;
+  margin-bottom: 32px;
+}
+
+.welcome-loader {
+  width: 120px;
+  height: 2px;
+  background: #27272a;
+  border-radius: 2px;
+  overflow: hidden;
+  position: relative;
+}
+
+.welcome-loader-bar {
+  width: 100%;
+  height: 100%;
+  background: var(--accent, #10b981);
+  position: absolute;
+  left: -100%;
+  animation: welcomeLoading 2s cubic-bezier(0.1, 0.85, 0.25, 1) forwards;
+}
+
+@keyframes logoPulse {
+  0% { transform: scale(1); filter: brightness(1); }
+  50% { transform: scale(1.03); filter: brightness(1.15); }
+  100% { transform: scale(1); filter: brightness(1); }
+}
+
+@keyframes welcomeLoading {
+  0% { left: -100%; }
+  50% { left: -30%; }
+  100% { left: 0%; }
 }
 
 

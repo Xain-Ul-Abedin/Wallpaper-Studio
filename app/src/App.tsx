@@ -339,6 +339,16 @@ export default function App() {
   });
   const [onboardingStep, setOnboardingStep] = useState<number>(0);
 
+  // ── STARTUP WELCOME SCREEN STATE ──
+  const [showWelcomeScreen, setShowWelcomeScreen] = useState<boolean>(true);
+  const [welcomeFade, setWelcomeFade] = useState<boolean>(false);
+
+  // ── CUSTOM SAVE TO GALLERY MODAL STATE ──
+  const [isSaveModalActive, setIsSaveModalActive] = useState<boolean>(false);
+  const [saveWallpaperName, setSaveWallpaperName] = useState<string>('');
+  const [saveTargetItem, setSaveTargetItem] = useState<SavedState | null>(null);
+  const savePreviewCanvasRef = useRef<HTMLCanvasElement | null>(null);
+
   // ── CUSTOM RESOLUTION MODAL STATE ──
   const [isCustomModalActive, setIsCustomModalActive] = useState<boolean>(false);
   const [modalCategory, setModalCategory] = useState<string>('desktop');
@@ -488,6 +498,51 @@ export default function App() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [currentPattern, paletteIdx, seed, zoomLevel, fitMode, isInverted, activeTab]);
 
+  // ── STARTUP WELCOME SCREEN TIMER HOOK ──
+  useEffect(() => {
+    const fadeTimer = setTimeout(() => {
+      setWelcomeFade(true);
+    }, 1800);
+
+    const hideTimer = setTimeout(() => {
+      setShowWelcomeScreen(false);
+    }, 2200);
+
+    return () => {
+      clearTimeout(fadeTimer);
+      clearTimeout(hideTimer);
+    };
+  }, []);
+
+  // ── SAVE GALLERY MODAL PREVIEW HOOK ──
+  useEffect(() => {
+    if (!isSaveModalActive) return;
+    const canvas = savePreviewCanvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    let targetPattern = currentPattern;
+    let targetPaletteIdx = paletteIdx;
+    let targetSeed = seed;
+    let targetInverted = isInverted;
+
+    if (saveTargetItem) {
+      targetPattern = saveTargetItem.patternIdx;
+      targetPaletteIdx = saveTargetItem.paletteIdx;
+      targetSeed = saveTargetItem.seed;
+      targetInverted = saveTargetItem.isInverted;
+    }
+
+    const targetPalette = targetPaletteIdx >= PALETTES.length
+      ? customPalettes[targetPaletteIdx - PALETTES.length]
+      : PALETTES[targetPaletteIdx];
+
+    if (targetPalette) {
+      drawPattern(ctx, 360, 200, PATTERNS[targetPattern], targetPalette, targetSeed, 100, 'crop', targetInverted, customPalettes);
+    }
+  }, [isSaveModalActive, saveTargetItem, currentPattern, paletteIdx, seed, isInverted, customPalettes]);
+
   // ── ACTION UTILITIES ──
   const randomizeSeed = () => {
     const nextSeed = Math.floor(Math.random() * 999999);
@@ -619,33 +674,39 @@ export default function App() {
 
   // ── GALLERY ACTIONS (MY CUSTOM CREATIONS) ──
   const addCurrentToGallery = () => {
-    const name = prompt("Enter a name for your custom wallpaper creation:", `My Creation #${creationsTotal + 1}`);
-    if (name === null) return; // cancelled
-
-    StorageService.addCreation({
-      name: name.trim(),
-      patternIdx: currentPattern,
-      paletteIdx,
-      seed,
-      zoomLevel,
-      fitMode,
-      isInverted
-    });
-    setCreationsCount(prev => prev + 1); // trigger reload
-    showToast("Wallpaper successfully added to Gallery catalog!");
+    setSaveTargetItem(null);
+    setSaveWallpaperName(`My Creation #${creationsTotal + 1}`);
+    setIsSaveModalActive(true);
   };
 
   const addHistoryItemToGallery = (item: SavedState, e: React.MouseEvent) => {
     e.stopPropagation();
-    const name = prompt("Enter a name for your custom wallpaper creation:", `My Creation #${creationsTotal + 1}`);
-    if (name === null) return; // cancelled
+    setSaveTargetItem(item);
+    setSaveWallpaperName(`My Creation #${creationsTotal + 1}`);
+    setIsSaveModalActive(true);
+  };
 
-    StorageService.addCreation({
-      ...item,
-      name: name.trim()
-    });
+  const confirmSaveToGallery = () => {
+    const trimmedName = saveWallpaperName.trim() || `My Creation #${creationsTotal + 1}`;
+    if (saveTargetItem) {
+      StorageService.addCreation({
+        ...saveTargetItem,
+        name: trimmedName
+      });
+    } else {
+      StorageService.addCreation({
+        name: trimmedName,
+        patternIdx: currentPattern,
+        paletteIdx,
+        seed,
+        zoomLevel,
+        fitMode,
+        isInverted
+      });
+    }
     setCreationsCount(prev => prev + 1); // trigger reload
-    showToast("Variation added to Gallery catalog!");
+    setIsSaveModalActive(false);
+    showToast("Wallpaper successfully added to Gallery catalog!");
   };
 
   const deleteFromGallery = (id: number, e: React.MouseEvent) => {
@@ -727,17 +788,37 @@ export default function App() {
     {
       title: "Welcome to WallpaperStudio!",
       desc: "Create high-resolution procedural minimalist wallpapers locally. Generate beautiful flowing structures based on noise fields and vectors.",
-      button: "Next"
+      button: "Next",
+      icon: (
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" style={{ margin: '0 auto 8px auto', display: 'block' }}>
+          <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+          <circle cx="8.5" cy="8.5" r="1.5"></circle>
+          <polyline points="21 15 16 10 5 21"></polyline>
+        </svg>
+      )
     },
     {
       title: "Real-time Multi-Device View",
       desc: "Simulate and preview layouts on Desktop 4K, Tablet, and Mobile viewport frames simultaneously to make sure cropping and ratios are perfect.",
-      button: "Next"
+      button: "Next",
+      icon: (
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" style={{ margin: '0 auto 8px auto', display: 'block' }}>
+          <rect x="4" y="4" width="16" height="12" rx="2" ry="2"></rect>
+          <rect x="10" y="10" width="8" height="10" rx="2" ry="2"></rect>
+          <line x1="12" y1="20" x2="12" y2="20"></line>
+        </svg>
+      )
     },
     {
       title: "Apply Active Wallpaper Natively",
       desc: "Apply your created artwork directly as your active Windows desktop background with a single click. No config or file copy needed!",
-      button: "Get Started"
+      button: "Get Started",
+      icon: (
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" style={{ margin: '0 auto 8px auto', display: 'block' }}>
+          <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path>
+          <line x1="7" y1="7" x2="7.01" y2="7"></line>
+        </svg>
+      )
     }
   ];
 
@@ -766,6 +847,18 @@ export default function App() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', overflow: 'hidden' }}>
+      
+      {/* ── STARTUP WELCOME SPLASH SCREEN ── */}
+      {showWelcomeScreen && (
+        <div className={`welcome-screen ${welcomeFade ? 'fade-out' : ''}`}>
+          <div className="welcome-logo-mark">WPS</div>
+          <div className="welcome-title">Wallpaper Studio</div>
+          <div className="welcome-subtitle">Procedural Minimalist Art</div>
+          <div className="welcome-loader">
+            <div className="welcome-loader-bar" />
+          </div>
+        </div>
+      )}
       
       {/* ── STICKY TOP APP HEADER ── */}
       <header className="app-header">
@@ -806,8 +899,8 @@ export default function App() {
             </button>
           </nav>
 
-          <div className="logo" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <img src="./logo.png" alt="WPS Logo" style={{ width: '28px', height: '28px', borderRadius: '6px', objectFit: 'cover', border: '1px solid var(--border)' }} />
+          <div className="logo">
+            <span className="logo-mark">WPS</span>
             <h1>Wallpaper Studio <span style={{ fontSize: '0.65rem', padding: '2px 6px', background: 'var(--border)', borderRadius: '4px', marginLeft: '6px', color: 'var(--text-muted)' }}>Desktop</span></h1>
           </div>
         </div>
@@ -1422,19 +1515,19 @@ export default function App() {
                       onClick={() => setIsInverted(false)}
                     >
                       <span className="mode-icon mode-icon-dark"></span>
-                      Dark Wallpaper
+                      Dark
                     </button>
                     <button
                       className={`mode-btn ${isInverted ? 'active' : ''}`}
                       onClick={() => setIsInverted(true)}
                     >
                       <span className="mode-icon mode-icon-light"></span>
-                      Light Wallpaper
+                      Light
                     </button>
                   </div>
                 </div>
 
-                <div className="control-group native-wallpaper-group" style={{ display: 'block', marginTop: '10px' }}>
+                <div className="control-group native-wallpaper-group" style={{ marginTop: '20px' }}>
                   <div className="control-label">Workspace Integrations</div>
                   <div style={{ display: 'flex', gap: '10px' }}>
                     <button
@@ -1920,7 +2013,7 @@ export default function App() {
         <div className="modal-overlay active" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 120 }}>
           <div className="onboarding-card">
             <div className="onboarding-slides">
-              <img src="./logo.png" alt="WPS Logo" style={{ width: '40px', height: '40px', borderRadius: '8px', display: 'block', margin: '0 auto 8px auto', border: '1px solid var(--border)', objectFit: 'cover' }} />
+              {onboardingSlides[onboardingStep].icon}
               <h3 style={{ fontSize: '1.4rem', fontWeight: 600 }}>{onboardingSlides[onboardingStep].title}</h3>
               <p style={{ color: 'var(--text-muted)', fontSize: '0.95rem', lineHeight: '1.5', margin: '8px 0' }}>
                 {onboardingSlides[onboardingStep].desc}
@@ -1953,6 +2046,63 @@ export default function App() {
               >
                 {onboardingSlides[onboardingStep].button}
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── CUSTOM SAVE TO GALLERY MODAL ── */}
+      {isSaveModalActive && (
+        <div className="modal-overlay active" id="saveGalleryModal" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 118 }}>
+          <div className="custom-modal-card-lg">
+            <button className="modal-close" onClick={() => setIsSaveModalActive(false)}>&times;</button>
+            <h3>Save Wallpaper to Gallery</h3>
+            <p className="custom-modal-sub">Title your wallpaper creation to save it inside your local offline creations catalog.</p>
+
+            <div className="custom-modal-body">
+              <div className="custom-inputs-column">
+                <div className="input-group">
+                  <label>Wallpaper Title</label>
+                  <input
+                    type="text"
+                    value={saveWallpaperName}
+                    onChange={(e) => setSaveWallpaperName(e.target.value)}
+                    placeholder="E.g., Sunset Waves"
+                    className="custom-input"
+                    maxLength={32}
+                  />
+                </div>
+
+                <div className="calculated-info" style={{ marginTop: '16px', color: 'var(--text-muted)', fontSize: '0.82rem', display: 'flex', gap: '12px' }}>
+                  <span>Pattern Index: #{saveTargetItem ? saveTargetItem.patternIdx : currentPattern}</span>
+                  <span>•</span>
+                  <span>Palette: {
+                    (saveTargetItem ? saveTargetItem.paletteIdx : paletteIdx) >= PALETTES.length
+                      ? "Custom Palette"
+                      : PALETTES[saveTargetItem ? saveTargetItem.paletteIdx : paletteIdx].name
+                  }</span>
+                </div>
+
+                <button
+                  className="modal-download-btn-fixed"
+                  style={{ width: '100%', marginTop: '24px' }}
+                  onClick={confirmSaveToGallery}
+                >
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M19 21H5a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                    <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                    <polyline points="7 3 7 8 15 8"></polyline>
+                  </svg>
+                  <span>Save to Creations Gallery</span>
+                </button>
+              </div>
+
+              <div className="custom-preview-column">
+                <div className="preview-label">Live Canvas Thumbnail Preview</div>
+                <div className="custom-canvas-box">
+                  <canvas ref={savePreviewCanvasRef} width="360" height="200" />
+                </div>
+              </div>
             </div>
           </div>
         </div>

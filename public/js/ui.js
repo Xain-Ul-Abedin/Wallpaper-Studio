@@ -75,8 +75,8 @@ function performRender() {
     ctx.clip();
     const prevInvertedLeft = isInverted;
     setInverted(false);
-    // Render Dunas (Pattern 2) in Stone (Palette 2) with Seed 888
-    drawPattern(ctx, w, h, 2, activePalettes[2], 888, 100, 'crop');
+    // Render selected pattern in Stone (Palette 2) with Seed 888
+    drawPattern(ctx, w, h, comparePatternIdx, activePalettes[2], 888, 100, 'crop');
     setInverted(prevInvertedLeft);
     ctx.restore();
 
@@ -87,8 +87,8 @@ function performRender() {
     ctx.clip();
     const prevInvertedRight = isInverted;
     setInverted(true);
-    // Render Dunas (Pattern 2) in Stone (Palette 2) with Seed 888
-    drawPattern(ctx, w, h, 2, activePalettes[2], 888, 100, 'crop');
+    // Render selected pattern in Stone (Palette 2) with Seed 888
+    drawPattern(ctx, w, h, comparePatternIdx, activePalettes[2], 888, 100, 'crop');
     setInverted(prevInvertedRight);
     ctx.restore();
   }
@@ -274,9 +274,23 @@ function setupViewNavigation() {
 
 // INTERACTIVE COMPARISON SLIDER DRAGGING CONTROLLER
 let sliderPosition = 0.5; // Starts in dead-center
+let comparePatternIdx = 2; // Default to Dunas (Waves)
+
 function setupComparisonSlider() {
   const wrapper = document.getElementById('sliderWrapper');
   const bar = document.getElementById('sliderBar');
+  const pills = document.querySelectorAll('.compare-pill');
+
+  if (pills) {
+    pills.forEach(btn => {
+      btn.onclick = () => {
+        pills.forEach(p => p.classList.remove('active'));
+        btn.classList.add('active');
+        comparePatternIdx = parseInt(btn.getAttribute('data-pattern'));
+        scheduleRender();
+      };
+    });
+  }
 
   if (!wrapper || !bar) return;
 
@@ -666,6 +680,7 @@ function renderFullscreenCanvas() {
 }
 
 function openFullscreen(deviceType = 'desktop') {
+  if (window.innerWidth < 768) return; // Disable fullscreen on mobile viewports
   activeFullscreenDevice = deviceType;
   const modal = document.getElementById('fullscreenPreviewModal');
   const title = document.getElementById('fullscreenTitle');

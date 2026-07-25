@@ -19,10 +19,12 @@
       "main_desktop.js",
       "preload.js",
       "package.json",
-      "app/dist/**/*"
+      "app/dist/**/*",
+      "public/**/*"
     ],
     "win": {
       "target": "nsis",
+      "icon": "public/icon.ico",
       "artifactName": "WallpaperStudio-Setup-${version}.${ext}"
     },
     "nsis": {

@@ -806,8 +806,8 @@ export default function App() {
             </button>
           </nav>
 
-          <div className="logo">
-            <span className="logo-mark">WPS</span>
+          <div className="logo" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <img src="./logo.png" alt="WPS Logo" style={{ width: '28px', height: '28px', borderRadius: '6px', objectFit: 'cover', border: '1px solid var(--border)' }} />
             <h1>Wallpaper Studio <span style={{ fontSize: '0.65rem', padding: '2px 6px', background: 'var(--border)', borderRadius: '4px', marginLeft: '6px', color: 'var(--text-muted)' }}>Desktop</span></h1>
           </div>
         </div>
@@ -1920,7 +1920,7 @@ export default function App() {
         <div className="modal-overlay active" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 120 }}>
           <div className="onboarding-card">
             <div className="onboarding-slides">
-              <div className="logo-mark" style={{ margin: '0 auto 8px auto', float: 'none', background: 'var(--accent)', color: 'var(--bg)' }}>WPS</div>
+              <img src="./logo.png" alt="WPS Logo" style={{ width: '40px', height: '40px', borderRadius: '8px', display: 'block', margin: '0 auto 8px auto', border: '1px solid var(--border)', objectFit: 'cover' }} />
               <h3 style={{ fontSize: '1.4rem', fontWeight: 600 }}>{onboardingSlides[onboardingStep].title}</h3>
               <p style={{ color: 'var(--text-muted)', fontSize: '0.95rem', lineHeight: '1.5', margin: '8px 0' }}>
                 {onboardingSlides[onboardingStep].desc}

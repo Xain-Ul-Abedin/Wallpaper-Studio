@@ -27,6 +27,12 @@ body.site-dark {
   -webkit-tap-highlight-color: transparent;
 }
 
+html {
+  overflow-x: hidden;
+  width: 100%;
+  max-width: 100%;
+}
+
 body {
   font-family: 'Lexend', -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
   background: var(--bg);

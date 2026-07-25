@@ -233,7 +233,9 @@ export default function App() {
   const [seed, setSeed] = useState<number>(12345);
   const [zoomLevel, setZoomLevel] = useState<number>(100);
   const [fitMode, setFitMode] = useState<'crop' | 'fit'>('crop');
-  const [deviceMode, setDeviceMode] = useState<'all' | 'desktop' | 'tablet' | 'mobile'>('all');
+  const [deviceMode, setDeviceMode] = useState<'all' | 'desktop' | 'tablet' | 'mobile'>(() => {
+    return (typeof window !== 'undefined' && window.innerWidth < 768) ? 'mobile' : 'all';
+  });
   const [isInverted, setIsInverted] = useState<boolean>(false); // Wallpaper inversion
   const [isLightTheme, setIsLightTheme] = useState<boolean>(true); // App color scheme
   

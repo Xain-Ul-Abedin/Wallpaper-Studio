@@ -1585,63 +1585,109 @@ export default function App() {
 
         {/* ── VIEW 3: HELP & SHORTCUTS VIEW ── */}
         {activeTab === 'help' && !isTransitioning && (
-          <main className="view-container active" style={{ padding: '40px 24px', maxWidth: '800px', margin: '0 auto' }}>
-            <h2 style={{ fontSize: '1.8rem', fontWeight: 600, marginBottom: '16px' }}>Offline Help & Shortcut Center</h2>
-            <p style={{ color: 'var(--text-muted)', marginBottom: '32px', fontSize: '1.05rem', lineHeight: '1.6' }}>
-              Welcome to the local desktop environment dashboard. Here you can review hotkeys, re-run onboarding guides, and manage offline preferences.
-            </p>
+          <main className="view-container active" style={{ padding: '48px 24px', maxWidth: '960px', margin: '0 auto' }}>
+            <div style={{ marginBottom: '40px', borderBottom: '1.5px solid var(--border)', paddingBottom: '24px' }}>
+              <span className="section-tag" style={{ marginBottom: '8px', display: 'inline-block' }}>OFFLINE HUB</span>
+              <h2 style={{ fontSize: '2rem', fontWeight: 700, letterSpacing: '-0.02em', margin: 0, color: 'var(--text)' }}>Desktop Support & Shortcut Center</h2>
+              <p style={{ color: 'var(--text-muted)', marginTop: '8px', fontSize: '0.98rem', lineHeight: '1.6', maxWidth: '600px' }}>
+                Review interactive keyboard layouts, manage offline backups, and inspect local math noise matrix parameters.
+              </p>
+            </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', marginBottom: '32px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1.3fr 1fr', gap: '24px', marginBottom: '24px' }}>
               
               {/* Keyboard Shortcuts Card */}
-              <div style={{ background: 'var(--card-bg)', border: '1.5px solid var(--border)', borderRadius: '12px', padding: '24px', boxShadow: 'var(--card-shadow)' }}>
-                <h3 style={{ fontSize: '1.2rem', fontWeight: 600, marginBottom: '16px' }}>Keyboard Shortcuts</h3>
-                <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                  <li style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.95rem' }}>
-                    <span style={{ color: 'var(--text-muted)' }}>Randomize Seed</span>
-                    <kbd style={{ background: 'var(--hover-bg)', border: '1px solid var(--border)', padding: '2px 8px', borderRadius: '4px', fontSize: '0.85rem' }}>Spacebar</kbd>
-                  </li>
-                  <li style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.95rem' }}>
-                    <span style={{ color: 'var(--text-muted)' }}>High-Res PNG Export</span>
-                    <kbd style={{ background: 'var(--hover-bg)', border: '1px solid var(--border)', padding: '2px 8px', borderRadius: '4px', fontSize: '0.85rem' }}>Ctrl + S</kbd>
-                  </li>
-                </ul>
+              <div className="bento-card" style={{ background: 'var(--card-bg)', border: '1.5px solid var(--border)', borderRadius: '16px', padding: '28px', display: 'flex', flexDirection: 'column', gap: '20px', boxShadow: 'var(--card-shadow)' }}>
+                <div>
+                  <h3 style={{ fontSize: '1.15rem', fontWeight: 600, margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <rect x="2" y="4" width="20" height="16" rx="2" ry="2"></rect>
+                      <line x1="6" y1="8" x2="6" y2="8"></line>
+                      <line x1="10" y1="8" x2="10" y2="8"></line>
+                      <line x1="14" y1="8" x2="14" y2="8"></line>
+                      <line x1="18" y1="8" x2="18" y2="8"></line>
+                      <line x1="6" y1="12" x2="6" y2="12"></line>
+                      <line x1="18" y1="12" x2="18" y2="12"></line>
+                      <line x1="7" y1="16" x2="17" y2="16"></line>
+                      <line x1="10" y1="12" x2="14" y2="12"></line>
+                    </svg>
+                    Keyboard Controls Map
+                  </h3>
+                  <p style={{ color: 'var(--text-muted)', fontSize: '0.8rem', marginTop: '6px', margin: 0 }}>Use hotkeys to quickly navigate and control the wallpaper engine.</p>
+                </div>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border)', paddingBottom: '8px' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column' }}>
+                      <span style={{ fontSize: '0.88rem', fontWeight: 500 }}>Randomize Seed</span>
+                      <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>Generate new design variations</span>
+                    </div>
+                    <kbd style={{ background: 'var(--hover-bg)', border: '1.5px solid var(--border)', padding: '4px 10px', borderRadius: '6px', fontSize: '0.75rem', fontWeight: 600, color: 'var(--text)', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>Spacebar</kbd>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border)', paddingBottom: '8px' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column' }}>
+                      <span style={{ fontSize: '0.88rem', fontWeight: 500 }}>High-Res PNG Export</span>
+                      <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>Save current canvas preset</span>
+                    </div>
+                    <kbd style={{ background: 'var(--hover-bg)', border: '1.5px solid var(--border)', padding: '4px 10px', borderRadius: '6px', fontSize: '0.75rem', fontWeight: 600, color: 'var(--text)', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>Ctrl + S</kbd>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column' }}>
+                      <span style={{ fontSize: '0.88rem', fontWeight: 500 }}>Change Views</span>
+                      <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>Navigate main tabs instantly</span>
+                    </div>
+                    <kbd style={{ background: 'var(--hover-bg)', border: '1.5px solid var(--border)', padding: '4px 10px', borderRadius: '6px', fontSize: '0.75rem', fontWeight: 600, color: 'var(--text)', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>Tab</kbd>
+                  </div>
+                </div>
               </div>
 
               {/* Onboarding Replay Card */}
-              <div style={{ background: 'var(--card-bg)', border: '1.5px solid var(--border)', borderRadius: '12px', padding: '24px', boxShadow: 'var(--card-shadow)', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+              <div className="bento-card" style={{ background: 'var(--card-bg)', border: '1.5px solid var(--border)', borderRadius: '16px', padding: '28px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', gap: '20px', boxShadow: 'var(--card-shadow)' }}>
                 <div>
-                  <h3 style={{ fontSize: '1.2rem', fontWeight: 600, marginBottom: '8px' }}>Interactive Guide</h3>
-                  <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', lineHeight: '1.5' }}>
-                    Replay the introduction tour popup to review how to use custom multi-device viewports.
+                  <h3 style={{ fontSize: '1.15rem', fontWeight: 600, margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                    </svg>
+                    Interactive Guide Tour
+                  </h3>
+                  <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', lineHeight: '1.5', marginTop: '8px' }}>
+                    Replay the introduction walkthrough to review canvas crop controls, custom resolutions, and multi-device presets.
                   </p>
                 </div>
                 <button
                   className="modal-download-btn-fixed"
-                  style={{ width: '100%', marginTop: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
+                  style={{ width: '100%', margin: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '12px' }}
                   onClick={replayOnboarding}
                 >
-                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M1 4v6h6M23 20v-6h-6"></path>
-                    <path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"></path>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"></path>
                   </svg>
-                  <span>Launch Walkthrough Tour</span>
+                  <span>Launch Walkthrough</span>
                 </button>
               </div>
             </div>
 
             {/* Offline Data Portability & Sync Backup Card */}
-            <div style={{ background: 'var(--card-bg)', border: '1.5px solid var(--border)', borderRadius: '12px', padding: '24px', boxShadow: 'var(--card-shadow)', marginBottom: '32px' }}>
-              <h3 style={{ fontSize: '1.2rem', fontWeight: 600, marginBottom: '8px' }}>Data Portability & Sync Backup (Offline-First)</h3>
-              <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', lineHeight: '1.6', marginBottom: '16px' }}>
-                Export your custom palettes, creations catalog, and history items into a portability file, or upload a backup file to sync states locally.
-              </p>
+            <div className="bento-card" style={{ background: 'var(--card-bg)', border: '1.5px solid var(--border)', borderRadius: '16px', padding: '28px', marginBottom: '24px', boxShadow: 'var(--card-shadow)' }}>
+              <div style={{ marginBottom: '20px' }}>
+                <h3 style={{ fontSize: '1.15rem', fontWeight: 600, margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                    <polyline points="7 10 12 15 17 10"></polyline>
+                    <line x1="12" y1="15" x2="12" y2="3"></line>
+                  </svg>
+                  Data Backup & Portability
+                </h3>
+                <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', lineHeight: '1.5', marginTop: '6px' }}>
+                  Export your saved creations, custom color palettes, and editor history items, or load an existing config file to synchronize devices.
+                </p>
+              </div>
               
               <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
                 <button
                   className="card-action-btn btn-card-edit"
                   onClick={exportDataBackup}
-                  style={{ display: 'flex', alignItems: 'center', gap: '6px', height: '36px', padding: '0 16px' }}
+                  style={{ display: 'flex', alignItems: 'center', gap: '8px', height: '40px', padding: '0 18px', background: 'var(--hover-bg)', border: '1.5px solid var(--border)', borderRadius: '8px', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 600 }}
                 >
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
@@ -1654,7 +1700,7 @@ export default function App() {
                 <button
                   className="card-action-btn btn-card-edit"
                   onClick={() => backupInputRef.current?.click()}
-                  style={{ display: 'flex', alignItems: 'center', gap: '6px', height: '36px', padding: '0 16px' }}
+                  style={{ display: 'flex', alignItems: 'center', gap: '8px', height: '40px', padding: '0 18px', background: 'var(--hover-bg)', border: '1.5px solid var(--border)', borderRadius: '8px', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 600 }}
                 >
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
@@ -1673,16 +1719,21 @@ export default function App() {
               </div>
             </div>
 
-            {/* Offline Engine details */}
-            <div style={{ background: 'var(--card-bg)', border: '1.5px solid var(--border)', borderRadius: '12px', padding: '24px', boxShadow: 'var(--card-shadow)' }}>
-              <h3 style={{ fontSize: '1.2rem', fontWeight: 600, marginBottom: '12px' }}>Procedural Vector Math Engine</h3>
-              <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', lineHeight: '1.6', marginBottom: '12px' }}>
-                WPS Desktop runs completely offline. It creates layout contours using seed-based fractional Brownian noise matrices combined with cubic math interpolation functions.
+            {/* Procedural Engine details */}
+            <div className="bento-card" style={{ background: 'var(--card-bg)', border: '1.5px solid var(--border)', borderRadius: '16px', padding: '28px', boxShadow: 'var(--card-shadow)' }}>
+              <h3 style={{ fontSize: '1.15rem', fontWeight: 600, margin: 0, display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+                </svg>
+                Procedural Vector Math Engine
+              </h3>
+              <p style={{ color: 'var(--text-muted)', fontSize: '0.86rem', lineHeight: '1.6', marginBottom: '16px', margin: '8px 0 16px 0' }}>
+                WallpaperStudio runs entirely offline. Layout contours and vector lines are generated via local math interpolation functions combined with fractional Brownian noise matrices, ensuring zero cloud dependencies and immediate, pixel-perfect rendering outputs.
               </p>
               <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                <span style={{ fontSize: '0.75rem', padding: '4px 10px', background: 'var(--hover-bg)', border: '1px solid var(--border)', borderRadius: '100px', color: 'var(--text-muted)' }}>Local Win32 APIs</span>
-                <span style={{ fontSize: '0.75rem', padding: '4px 10px', background: 'var(--hover-bg)', border: '1px solid var(--border)', borderRadius: '100px', color: 'var(--text-muted)' }}>Offline Math Rendering</span>
-                <span style={{ fontSize: '0.75rem', padding: '4px 10px', background: 'var(--hover-bg)', border: '1px solid var(--border)', borderRadius: '100px', color: 'var(--text-muted)' }}>Zero Cloud Latency</span>
+                <span style={{ fontSize: '0.72rem', padding: '6px 12px', background: 'var(--hover-bg)', border: '1px solid var(--border)', borderRadius: '100px', color: 'var(--text-muted)', fontWeight: 500 }}>Local Electron & Win32 APIs</span>
+                <span style={{ fontSize: '0.72rem', padding: '6px 12px', background: 'var(--hover-bg)', border: '1px solid var(--border)', borderRadius: '100px', color: 'var(--text-muted)', fontWeight: 500 }}>Procedural Noise Calculations</span>
+                <span style={{ fontSize: '0.72rem', padding: '6px 12px', background: 'var(--hover-bg)', border: '1px solid var(--border)', borderRadius: '100px', color: 'var(--text-muted)', fontWeight: 500 }}>Zero Cloud Bandwidth</span>
               </div>
             </div>
           </main>

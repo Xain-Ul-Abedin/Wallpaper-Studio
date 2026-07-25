@@ -30,6 +30,11 @@ jobs:
       - name: Install Dependencies
         run: npm ci
 
+      - name: Build React Frontend
+        run: |
+          npm ci --prefix app
+          npm run build --prefix app
+
       - name: Compile Desktop App Binaries
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

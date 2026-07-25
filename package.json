@@ -12,11 +12,26 @@
     "appId": "com.wallpaperstudio.app",
     "productName": "WallpaperStudio",
     "directories": {
-      "output": "dist"
+      "output": "dist",
+      "app": "."
     },
+    "files": [
+      "main_desktop.js",
+      "preload.js",
+      "package.json",
+      "app/dist/**/*"
+    ],
     "win": {
       "target": "nsis",
       "artifactName": "WallpaperStudio-Setup-${version}.${ext}"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": "always",
+      "createStartMenuShortcut": true,
+      "runAfterFinish": true,
+      "shortcutName": "WallpaperStudio"
     },
     "mac": {
       "target": "dmg",

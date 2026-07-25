@@ -392,7 +392,7 @@ function buildGalleryCategories() {
     const scrollBox = document.createElement('div');
     scrollBox.className = 'category-cards-scroll-box';
 
-    activePalettes.slice(0, 5).forEach((pal, palIdx) => {
+    activePalettes.slice(0, 6).forEach((pal, palIdx) => {
       const card = document.createElement('div');
       card.className = 'gallery-card';
       const canvas = document.createElement('canvas');

@@ -8,43 +8,9 @@ import {
 } from './utils/constants';
 import type { Palette, PatternType } from './utils/constants';
 import { drawPattern } from './utils/patterns';
-
-// ── COLOR MATHEMATICS INTERPOLATOR ──
-function generate10ShadePalette(c1: string, c2: string, c3: string): string[] {
-  const hexToRgb = (hex: string): [number, number, number] => [
-    parseInt(hex.slice(1, 3), 16),
-    parseInt(hex.slice(3, 5), 16),
-    parseInt(hex.slice(5, 7), 16)
-  ];
-
-  const rgbToHex = (r: number, g: number, b: number): string =>
-    `#${[r, g, b]
-      .map(x => Math.round(Math.max(0, Math.min(255, x))).toString(16).padStart(2, '0'))
-      .join('')}`;
-
-  const blend = (colorA: string, colorB: string, factor: number): string => {
-    const a = hexToRgb(colorA);
-    const b = hexToRgb(colorB);
-    return rgbToHex(
-      a[0] + (b[0] - a[0]) * factor,
-      a[1] + (b[1] - a[1]) * factor,
-      a[2] + (b[2] - a[2]) * factor
-    );
-  };
-
-  return [
-    c1,
-    blend(c1, c2, 0.35),
-    blend(c1, c2, 0.70),
-    c2,
-    blend(c2, c3, 0.35),
-    blend(c2, c3, 0.70),
-    c3,
-    blend(c3, '#ffffff', 0.35),
-    blend(c3, '#ffffff', 0.70),
-    '#ffffff'
-  ];
-}
+import { StorageService } from './utils/storageService';
+import type { SavedState } from './utils/storageService';
+import { generate10ShadePalette } from './utils/color';
 
 // ── TOOLTIP COMPONENT ──
 function Tooltip({ text, children }: { text: string; children: React.ReactNode }) {
@@ -198,7 +164,6 @@ function FeaturedCanvas({ palette, customPalettes }: FeaturedCanvasProps) {
       const ctx = canvas.getContext('2d');
       if (!ctx) return;
 
-      // Stone (light version) means isInverted = true!
       drawPattern(ctx, 1920, 1080, 'flowing-hills', palette, 555, 100, 'crop', true, customPalettes);
       setIsLoaded(true);
     }, 80);
@@ -256,18 +221,6 @@ function HistoryCardCanvas({ pattern, palette, seed, zoomLevel, fitMode, isInver
   return <canvas ref={canvasRef} width={120} height={80} style={{ width: '120px', height: '80px', display: 'block', borderRadius: '6px' }} />;
 }
 
-// ── CUSTOM WORKSPACE STATE ITEM INTERFACE ──
-interface SavedState {
-  id: number;
-  name?: string;
-  patternIdx: number;
-  paletteIdx: number;
-  seed: number;
-  zoomLevel: number;
-  fitMode: 'crop' | 'fit';
-  isInverted: boolean;
-}
-
 // ── MAIN APPLICATION COMPONENT ──
 export default function App() {
   // ── ROUTING & PAGE TRANSITION STATE ──
@@ -284,34 +237,24 @@ export default function App() {
   const [isInverted, setIsInverted] = useState<boolean>(false); // Wallpaper inversion
   const [isLightTheme, setIsLightTheme] = useState<boolean>(true); // App color scheme
   
-  // Custom palettes loaded from localStorage
-  const [customPalettes, setCustomPalettes] = useState<Palette[]>(() => {
-    try {
-      const saved = localStorage.getItem('ws_custom_palettes');
-      return saved ? JSON.parse(saved) : [];
-    } catch {
-      return [];
-    }
-  });
+  // Custom palettes loaded from independent StorageService layer
+  const [customPalettes, setCustomPalettes] = useState<Palette[]>(() => StorageService.getCustomPalettes());
 
-  // ── LOCAL DATABASE STATES (HISTORY & CUSTOM CREATIONS) ──
-  const [history, setHistory] = useState<SavedState[]>(() => {
-    try {
-      const saved = localStorage.getItem('ws_workspace_history');
-      return saved ? JSON.parse(saved) : [];
-    } catch {
-      return [];
-    }
-  });
+  // ── LOCAL DATABASE STATES (HISTORY & PAGINATED CUSTOM GALLERY CREATIONS) ──
+  const [history, setHistory] = useState<SavedState[]>(() => StorageService.getHistory());
+  const [creationsCount, setCreationsCount] = useState<number>(0); // force reload trigger
 
-  const [customCreations, setCustomCreations] = useState<SavedState[]>(() => {
-    try {
-      const saved = localStorage.getItem('ws_custom_creations');
-      return saved ? JSON.parse(saved) : [];
-    } catch {
-      return [];
-    }
-  });
+  // Paginated search parameters for custom creations list
+  const [creationsSearch, setCreationsSearch] = useState<string>('');
+  const [creationsPage, setCreationsPage] = useState<number>(0);
+  const creationsLimit = 4;
+
+  const { items: paginatedCreations, total: creationsTotal } = StorageService.getCreations(
+    creationsSearch,
+    creationsLimit,
+    creationsPage * creationsLimit
+  );
+  void creationsCount;
 
   // ── ONBOARDING STATE ──
   const [showOnboarding, setShowOnboarding] = useState<boolean>(() => {
@@ -334,6 +277,9 @@ export default function App() {
   const [colorPicker3, setColorPicker3] = useState<string>("#10b981");
 
   const tempPaletteColors = generate10ShadePalette(colorPicker1, colorPicker2, colorPicker3);
+
+  // File input ref for restore backup uploads
+  const backupInputRef = useRef<HTMLInputElement | null>(null);
 
   // ── TOAST NOTIFICATIONS ──
   const [toastMessage, setToastMessage] = useState<string>('');
@@ -542,22 +488,18 @@ export default function App() {
   const deleteSelectedPalette = () => {
     if (paletteIdx < PALETTES.length) return;
     const indexToDelete = paletteIdx - PALETTES.length;
-    const updated = customPalettes.filter((_, idx) => idx !== indexToDelete);
+    const updated = StorageService.deleteCustomPalette(indexToDelete);
     setCustomPalettes(updated);
-    localStorage.setItem('ws_custom_palettes', JSON.stringify(updated));
-    setPaletteIdx(0); // fallback to standard Nordic Snow
+    setPaletteIdx(0); // fallback to snow
     showToast("Custom palette deleted successfully.");
   };
 
   const saveCustomPalette = () => {
-    const newPalette: Palette = {
-      name: customPaletteName.trim() || `Palette ${customPalettes.length + 1}`,
+    const updated = StorageService.saveCustomPalette({
+      name: customPaletteName,
       colors: tempPaletteColors
-    };
-
-    const updated = [...customPalettes, newPalette];
+    });
     setCustomPalettes(updated);
-    localStorage.setItem('ws_custom_palettes', JSON.stringify(updated));
     setPaletteIdx(PALETTES.length + updated.length - 1);
     setIsPaletteModalActive(false);
     showToast("Custom palette added!");
@@ -565,19 +507,15 @@ export default function App() {
 
   // ── HISTORY ACTIONS ──
   const addToHistoryDirectly = (pat: number, pal: number, sd: number, zoom: number, fit: 'crop' | 'fit', inverted: boolean) => {
-    const newItem: SavedState = {
-      id: Date.now(),
+    const updated = StorageService.addHistoryItem({
       patternIdx: pat,
       paletteIdx: pal,
       seed: sd,
       zoomLevel: zoom,
       fitMode: fit,
       isInverted: inverted
-    };
-    // Cap at 10 items
-    const updated = [newItem, ...history.slice(0, 9)];
+    });
     setHistory(updated);
-    localStorage.setItem('ws_workspace_history', JSON.stringify(updated));
   };
 
   const addToHistoryCurrent = () => {
@@ -592,61 +530,55 @@ export default function App() {
     setZoomLevel(item.zoomLevel);
     setFitMode(item.fitMode);
     setIsInverted(item.isInverted);
-    showToast("Workspace loaded from history card.");
+    showToast("Workspace restored from history card.");
   };
 
   const deleteHistoryItem = (id: number, e: React.MouseEvent) => {
     e.stopPropagation();
-    const updated = history.filter(item => item.id !== id);
+    const updated = StorageService.deleteHistoryItem(id);
     setHistory(updated);
-    localStorage.setItem('ws_workspace_history', JSON.stringify(updated));
     showToast("Variation removed from history.");
   };
 
   // ── GALLERY ACTIONS (MY CUSTOM CREATIONS) ──
   const addCurrentToGallery = () => {
-    const name = prompt("Enter a name for your custom wallpaper creation:", `My Creation #${customCreations.length + 1}`);
+    const name = prompt("Enter a name for your custom wallpaper creation:", `My Creation #${creationsTotal + 1}`);
     if (name === null) return; // cancelled
 
-    const newItem: SavedState = {
-      id: Date.now(),
-      name: name.trim() || `My Creation #${customCreations.length + 1}`,
+    StorageService.addCreation({
+      name: name.trim(),
       patternIdx: currentPattern,
       paletteIdx,
       seed,
       zoomLevel,
       fitMode,
       isInverted
-    };
-
-    const updated = [newItem, ...customCreations];
-    setCustomCreations(updated);
-    localStorage.setItem('ws_custom_creations', JSON.stringify(updated));
+    });
+    setCreationsCount(prev => prev + 1); // trigger reload
     showToast("Wallpaper successfully added to Gallery catalog!");
   };
 
   const addHistoryItemToGallery = (item: SavedState, e: React.MouseEvent) => {
     e.stopPropagation();
-    const name = prompt("Enter a name for your custom wallpaper creation:", `My Creation #${customCreations.length + 1}`);
+    const name = prompt("Enter a name for your custom wallpaper creation:", `My Creation #${creationsTotal + 1}`);
     if (name === null) return; // cancelled
 
-    const newItem: SavedState = {
+    StorageService.addCreation({
       ...item,
-      id: Date.now(),
-      name: name.trim() || `My Creation #${customCreations.length + 1}`
-    };
-
-    const updated = [newItem, ...customCreations];
-    setCustomCreations(updated);
-    localStorage.setItem('ws_custom_creations', JSON.stringify(updated));
+      name: name.trim()
+    });
+    setCreationsCount(prev => prev + 1); // trigger reload
     showToast("Variation added to Gallery catalog!");
   };
 
   const deleteFromGallery = (id: number, e: React.MouseEvent) => {
     e.stopPropagation();
-    const updated = customCreations.filter(item => item.id !== id);
-    setCustomCreations(updated);
-    localStorage.setItem('ws_custom_creations', JSON.stringify(updated));
+    StorageService.deleteCreation(id);
+    setCreationsCount(prev => prev + 1); // trigger reload
+    // If the active page is suddenly out of items, shift back
+    if (creationsPage > 0 && paginatedCreations.length <= 1) {
+      setCreationsPage(creationsPage - 1);
+    }
     showToast("Creation removed from gallery.");
   };
 
@@ -659,6 +591,41 @@ export default function App() {
     setIsInverted(item.isInverted);
     setActiveTab('studio');
     showToast(`Loaded "${item.name}" in Studio editor.`);
+  };
+
+  // ── PORTABILITY & SYNC BACKUP UTILITIES ──
+  const exportDataBackup = () => {
+    const backupStr = StorageService.exportBackup();
+    const blob = new Blob([backupStr], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.download = `WPS_Backup_${Date.now()}.json`;
+    link.href = url;
+    link.click();
+    showToast("Workspace configuration backup exported!");
+  };
+
+  const importDataBackup = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const result = event.target?.result;
+      if (typeof result === 'string') {
+        const success = StorageService.importBackup(result);
+        if (success) {
+          setCustomPalettes(StorageService.getCustomPalettes());
+          setHistory(StorageService.getHistory());
+          setCreationsCount(prev => prev + 1); // force page updates
+          setCreationsPage(0);
+          showToast("Backup configuration successfully imported!");
+        } else {
+          showToast("Failed to parse backup file. Invalid format.");
+        }
+      }
+    };
+    reader.readAsText(file);
+    if (e.target) e.target.value = ''; // reset selection
   };
 
   const [dropdownOpen, setDropdownOpen] = useState<string | null>(null);
@@ -808,13 +775,13 @@ export default function App() {
         {activeTab === 'gallery' && !isTransitioning && (
           <main className="view-container active" id="viewGallery" style={{ padding: '0 0 40px 0' }}>
             
-            {/* Gallery Page Content Wrapper (with 48px lateral spacing gap) */}
-            <div style={{ padding: '0 48px' }}>
+            {/* Gallery Page Content Wrapper (with responsive lateral spacing gap) */}
+            <div className="gallery-content-wrap">
               
               {/* Featured Hero Art Section (Stone Light version, rounded inside padding wrapper) */}
               <section className="featured-hero-banner" style={{ minHeight: '380px', height: '380px', marginTop: '24px', borderRadius: '16px', overflow: 'hidden' }}>
                 <FeaturedCanvas palette={PALETTES[2] || PALETTES[0]} customPalettes={customPalettes} />
-                <div className="featured-overlay-content" style={{ paddingLeft: '48px', paddingRight: '48px' }}>
+                <div className="featured-overlay-content">
                   <div className="featured-tag-pill">
                     FEATURED PIECE
                   </div>
@@ -840,60 +807,116 @@ export default function App() {
                 </div>
               </section>
 
-              {/* ── MY CUSTOM CREATIONS GALLERY SECTION ── */}
-              {customCreations.length > 0 && (
+              {/* ── MY CUSTOM CREATIONS GALLERY SECTION (PAGINATED & SEARCHABLE) ── */}
+              {(creationsTotal > 0 || creationsSearch !== '') && (
                 <section className="category-section" style={{ marginTop: '32px' }}>
-                  <div className="category-header" style={{ padding: '0 4px' }}>
+                  <div className="category-header" style={{ padding: '0 4px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
                     <div>
                       <div className="category-title">My Custom Creations</div>
-                      <div className="category-sub">Your personal procedural wallpaper configurations saved from the studio</div>
+                      <div className="category-sub">Your personal procedural configurations saved from the studio</div>
+                    </div>
+                    {/* Real-time Search Box */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                      <input
+                        type="text"
+                        placeholder="Search your creations..."
+                        value={creationsSearch}
+                        onChange={(e) => {
+                          setCreationsSearch(e.target.value);
+                          setCreationsPage(0); // reset page on search query change
+                        }}
+                        className="custom-input"
+                        style={{ maxWidth: '240px', height: '36px', fontSize: '0.85rem' }}
+                      />
                     </div>
                   </div>
 
-                  <div className="category-cards-scroll-box" style={{ display: 'flex', gap: '16px', overflowX: 'auto', paddingBottom: '12px' }}>
-                    {customCreations.map((item) => {
-                      const pal = item.paletteIdx >= PALETTES.length
-                        ? customPalettes[item.paletteIdx - PALETTES.length]
-                        : PALETTES[item.paletteIdx];
+                  {paginatedCreations.length === 0 ? (
+                    <div className="history-empty-placeholder" style={{ padding: '40px 0' }}>
+                      No creations matching "{creationsSearch}".
+                    </div>
+                  ) : (
+                    <>
+                      <div className="category-cards-scroll-box" style={{ display: 'flex', gap: '16px', overflowX: 'auto', paddingBottom: '12px' }}>
+                        {paginatedCreations.map((item) => {
+                          const pal = item.paletteIdx >= PALETTES.length
+                            ? customPalettes[item.paletteIdx - PALETTES.length]
+                            : PALETTES[item.paletteIdx];
 
-                      if (!pal) return null;
+                          if (!pal) return null;
 
-                      return (
-                        <div key={item.id} className="gallery-card" style={{ flexShrink: 0, width: '280px' }}>
-                          <CustomCreationCanvas
-                            pattern={PATTERNS[item.patternIdx]}
-                            palette={pal}
-                            seed={item.seed}
-                            zoomLevel={item.zoomLevel}
-                            fitMode={item.fitMode}
-                            isInverted={item.isInverted}
-                            customPalettes={customPalettes}
-                          />
-                          
-                          <div className="gallery-card-info">
-                            <div className="gallery-card-name" style={{ textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>
-                              {item.name || "Untitled Creation"}
+                          return (
+                            <div key={item.id} className="gallery-card" style={{ flexShrink: 0, width: '280px' }}>
+                              <CustomCreationCanvas
+                                pattern={PATTERNS[item.patternIdx]}
+                                palette={pal}
+                                seed={item.seed}
+                                zoomLevel={item.zoomLevel}
+                                fitMode={item.fitMode}
+                                isInverted={item.isInverted}
+                                customPalettes={customPalettes}
+                              />
+                              
+                              <div className="gallery-card-info">
+                                <div className="gallery-card-name" style={{ textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>
+                                  {item.name || "Untitled Creation"}
+                                </div>
+                                <div className="card-quick-actions">
+                                  <button
+                                    className="card-action-btn btn-card-edit"
+                                    onClick={() => loadGalleryCreation(item)}
+                                    title="Edit creation in studio"
+                                    style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '8px' }}
+                                  >
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                      <path d="M12 20h9"></path>
+                                      <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"></path>
+                                    </svg>
+                                  </button>
+                                  <button
+                                    className="card-action-btn btn-card-download"
+                                    style={{ background: '#ef4444', color: 'white', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '8px' }}
+                                    onClick={(e) => deleteFromGallery(item.id, e)}
+                                    title="Delete creation"
+                                  >
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                      <polyline points="3 6 5 6 21 6"></polyline>
+                                      <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                                    </svg>
+                                  </button>
+                                </div>
+                              </div>
                             </div>
-                            <div className="card-quick-actions">
-                              <button
-                                className="card-action-btn btn-card-edit"
-                                onClick={() => loadGalleryCreation(item)}
-                              >
-                                Edit
-                              </button>
-                              <button
-                                className="card-action-btn btn-card-download"
-                                style={{ background: '#ef4444', color: 'white', border: 'none' }}
-                                onClick={(e) => deleteFromGallery(item.id, e)}
-                              >
-                                Delete
-                              </button>
-                            </div>
+                          );
+                        })}
+                      </div>
+
+                      {/* Pagination Controls */}
+                      {creationsTotal > creationsLimit && (
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '12px', padding: '0 4px' }}>
+                          <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+                            Showing {creationsPage * creationsLimit + 1} - {Math.min((creationsPage + 1) * creationsLimit, creationsTotal)} of {creationsTotal} creations
+                          </span>
+                          <div style={{ display: 'flex', gap: '8px' }}>
+                            <button
+                              className="nav-icon-btn"
+                              style={{ padding: '6px 12px', fontSize: '0.8rem', opacity: creationsPage === 0 ? 0.5 : 1, pointerEvents: creationsPage === 0 ? 'none' : 'auto' }}
+                              onClick={() => setCreationsPage(creationsPage - 1)}
+                            >
+                              Prev
+                            </button>
+                            <button
+                              className="nav-icon-btn"
+                              style={{ padding: '6px 12px', fontSize: '0.8rem', opacity: (creationsPage + 1) * creationsLimit >= creationsTotal ? 0.5 : 1, pointerEvents: (creationsPage + 1) * creationsLimit >= creationsTotal ? 'none' : 'auto' }}
+                              onClick={() => setCreationsPage(creationsPage + 1)}
+                            >
+                              Next
+                            </button>
                           </div>
                         </div>
-                      );
-                    })}
-                  </div>
+                      )}
+                    </>
+                  )}
                 </section>
               )}
 
@@ -931,7 +954,7 @@ export default function App() {
                       </div>
 
                       <div className="category-cards-scroll-box" style={{ display: 'flex', gap: '16px', overflowX: 'auto', paddingBottom: '12px' }}>
-                        {PALETTES.slice(0, 5).map((pal, palIdx) => (
+                        {PALETTES.slice(0, 6).map((pal, palIdx) => (
                           <div key={palIdx} className="gallery-card" style={{ flexShrink: 0, width: '280px' }}>
                             <GalleryCardCanvas pattern={PATTERNS[row.patternIdx]} palette={pal} customPalettes={customPalettes} />
                             
@@ -1040,7 +1063,11 @@ export default function App() {
                       <div className="preview-label">
                         Desktop 4K
                         <Tooltip text="Draws a standard 16:9 canvas preset matching monitor resolutions.">
-                          <span className="info-icon">i</span>
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="info-icon-svg">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <line x1="12" y1="16" x2="12" y2="12"></line>
+                            <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                          </svg>
                         </Tooltip>
                       </div>
                       <canvas ref={desktopCanvasRef} width="960" height="540" />
@@ -1054,7 +1081,11 @@ export default function App() {
                           <div className="preview-label">
                             Tablet
                             <Tooltip text="Draws a standard 3:4 canvas preset matching iPad/Tablet aspect ratios.">
-                              <span className="info-icon">i</span>
+                              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="info-icon-svg">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <line x1="12" y1="16" x2="12" y2="12"></line>
+                                <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                              </svg>
                             </Tooltip>
                           </div>
                           <canvas ref={tabletCanvasRef} width="600" height="800" />
@@ -1066,7 +1097,11 @@ export default function App() {
                           <div className="preview-label">
                             Mobile
                             <Tooltip text="Draws a standard 9:19.5 viewport matching newer smartphones.">
-                              <span className="info-icon">i</span>
+                              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="info-icon-svg">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <line x1="12" y1="16" x2="12" y2="12"></line>
+                                <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                              </svg>
                             </Tooltip>
                           </div>
                           <canvas ref={mobileCanvasRef} width="290" height="628" />
@@ -1198,7 +1233,11 @@ export default function App() {
                                   title="Add variation to Gallery catalog"
                                   onClick={(e) => addHistoryItemToGallery(item, e)}
                                 >
-                                  + Gallery
+                                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                                    <line x1="12" y1="8" x2="12" y2="16"></line>
+                                    <line x1="8" y1="12" x2="16" y2="12"></line>
+                                  </svg>
                                 </button>
                                 <button
                                   className="history-card-btn"
@@ -1206,7 +1245,10 @@ export default function App() {
                                   style={{ color: '#ef4444' }}
                                   onClick={(e) => deleteHistoryItem(item.id, e)}
                                 >
-                                  Delete
+                                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                    <polyline points="3 6 5 6 21 6"></polyline>
+                                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                                  </svg>
                                 </button>
                               </div>
                             </div>
@@ -1224,7 +1266,11 @@ export default function App() {
                   <div className="control-label">
                     Pattern
                     <Tooltip text="Select the mathematical algorithm that generates the shapes.">
-                      <span className="info-icon">i</span>
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="info-icon-svg">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <line x1="12" y1="16" x2="12" y2="12"></line>
+                        <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                      </svg>
                     </Tooltip>
                   </div>
                   <div className="style-grid">
@@ -1245,7 +1291,11 @@ export default function App() {
                   <div className="control-label">
                     Wallpaper Mode
                     <Tooltip text="Changes the wallpaper design appearance between light (inverted tones) and dark (normal tones).">
-                      <span className="info-icon">i</span>
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="info-icon-svg">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <line x1="12" y1="16" x2="12" y2="12"></line>
+                        <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                      </svg>
                     </Tooltip>
                   </div>
                   <div className="mode-toggle">
@@ -1268,25 +1318,33 @@ export default function App() {
 
                 <div className="control-group native-wallpaper-group" style={{ display: 'block', marginTop: '10px' }}>
                   <div className="control-label">Workspace Integrations</div>
-                  <button
-                    className="btn-custom-export-prominent text-center w-full"
-                    onClick={addCurrentToGallery}
-                    style={{ background: 'var(--card-bg)', color: 'var(--text)', border: '1.5px solid var(--border)', marginBottom: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
-                  >
-                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                      <line x1="12" y1="5" x2="12" y2="19"></line>
-                      <line x1="5" y1="12" x2="19" y2="12"></line>
-                    </svg>
-                    <span>Save to Gallery Catalog</span>
-                  </button>
-                  <button className="btn-custom-export-prominent text-center w-full" onClick={applyWallpaper} style={{ background: 'var(--accent)', color: 'var(--bg)', border: '1.5px solid var(--accent)' }}>
-                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                      <rect x="3" y="3" width="18" height="12" rx="2" ry="2"></rect>
-                      <line x1="12" y1="15" x2="12" y2="21"></line>
-                      <line x1="8" y1="21" x2="16" y2="21"></line>
-                    </svg>
-                    <span>Apply as Active Wallpaper</span>
-                  </button>
+                  <div style={{ display: 'flex', gap: '10px' }}>
+                    <button
+                      className="btn-custom-export-prominent text-center"
+                      onClick={addCurrentToGallery}
+                      style={{ flex: 1, background: 'var(--card-bg)', color: 'var(--text)', border: '1.5px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', padding: '10px 8px', fontSize: '0.78rem' }}
+                      title="Save this wallpaper configuration to your creations catalog"
+                    >
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <line x1="12" y1="5" x2="12" y2="19"></line>
+                        <line x1="5" y1="12" x2="19" y2="12"></line>
+                      </svg>
+                      <span>Save Gallery</span>
+                    </button>
+                    <button
+                      className="btn-custom-export-prominent text-center"
+                      onClick={applyWallpaper}
+                      style={{ flex: 1, background: 'var(--accent)', color: 'var(--bg)', border: '1.5px solid var(--accent)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', padding: '10px 8px', fontSize: '0.78rem' }}
+                      title="Set this pattern as your native desktop wallpaper background"
+                    >
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <rect x="3" y="3" width="18" height="12" rx="2" ry="2"></rect>
+                        <line x1="12" y1="15" x2="12" y2="21"></line>
+                        <line x1="8" y1="21" x2="16" y2="21"></line>
+                      </svg>
+                      <span>Set Wallpaper</span>
+                    </button>
+                  </div>
                 </div>
 
                 <div className="control-group export-group" style={{ marginTop: '20px' }}>
@@ -1451,6 +1509,49 @@ export default function App() {
                   </svg>
                   <span>Launch Walkthrough Tour</span>
                 </button>
+              </div>
+            </div>
+
+            {/* Offline Data Portability & Sync Backup Card */}
+            <div style={{ background: 'var(--card-bg)', border: '1.5px solid var(--border)', borderRadius: '12px', padding: '24px', boxShadow: 'var(--card-shadow)', marginBottom: '32px' }}>
+              <h3 style={{ fontSize: '1.2rem', fontWeight: 600, marginBottom: '8px' }}>Data Portability & Sync Backup (Offline-First)</h3>
+              <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', lineHeight: '1.6', marginBottom: '16px' }}>
+                Export your custom palettes, creations catalog, and history items into a portability file, or upload a backup file to sync states locally.
+              </p>
+              
+              <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+                <button
+                  className="card-action-btn btn-card-edit"
+                  onClick={exportDataBackup}
+                  style={{ display: 'flex', alignItems: 'center', gap: '6px', height: '36px', padding: '0 16px' }}
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                    <polyline points="7 10 12 15 17 10"></polyline>
+                    <line x1="12" y1="15" x2="12" y2="3"></line>
+                  </svg>
+                  <span>Export Backup Config</span>
+                </button>
+
+                <button
+                  className="card-action-btn btn-card-edit"
+                  onClick={() => backupInputRef.current?.click()}
+                  style={{ display: 'flex', alignItems: 'center', gap: '6px', height: '36px', padding: '0 16px' }}
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                    <polyline points="17 8 12 3 7 8"></polyline>
+                    <line x1="12" y1="3" x2="12" y2="15"></line>
+                  </svg>
+                  <span>Upload & Restore Backup</span>
+                </button>
+                <input
+                  type="file"
+                  ref={backupInputRef}
+                  style={{ display: 'none' }}
+                  accept=".json"
+                  onChange={importDataBackup}
+                />
               </div>
             </div>
 

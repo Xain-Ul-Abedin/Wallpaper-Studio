@@ -1623,6 +1623,8 @@ body.site-dark .black-dice-icon {
   display: flex;
   flex-direction: column;
   gap: 20px;
+  padding: 0 8px;
+  box-sizing: border-box;
 }
 
 .control-group {
@@ -1643,6 +1645,9 @@ body.site-dark .black-dice-icon {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 10px;
+  padding: 4px;
+  margin: -4px;
+  overflow: visible;
 }
 
 .style-btn {
@@ -2854,6 +2859,73 @@ body.site-dark .startup-logo-mark {
 .btn-download-action:disabled {
   cursor: not-allowed;
   opacity: 0.65;
+}
+
+/* Responsive Gallery content wrapper (shared class) */
+.gallery-content-wrap {
+  padding: 0 48px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* Premium SVG Info Icon */
+.info-icon-svg {
+  color: var(--text-muted);
+  margin-left: 6px;
+  vertical-align: middle;
+  cursor: pointer;
+  opacity: 0.75;
+  transition: opacity 0.2s ease, color 0.2s ease;
+  display: inline-block;
+}
+.info-icon-svg:hover {
+  opacity: 1;
+  color: var(--text);
+}
+
+/* Responsive Media Queries for Layout Overrides */
+@media (max-width: 768px) {
+  body {
+    padding: 0 !important;
+  }
+  
+  .app-header {
+    padding: 12px 16px !important;
+    margin-bottom: 16px !important;
+  }
+  
+  .view-container {
+    padding: 0 16px 40px !important;
+    max-width: 100% !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+  
+  .gallery-content-wrap {
+    padding: 0 16px;
+  }
+  
+  /* Prevent excessive spacing between landing page/gallery sections on mobile */
+  .slider-comparison-section, 
+  .demo-action-section, 
+  .features-grid-section, 
+  .overview-download-section,
+  .faq-section {
+    padding: 40px 0 !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .toolbar-right-actions {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 8px !important;
+  }
+  
+  .btn-enlarge-preview {
+    width: 100% !important;
+    justify-content: center !important;
+  }
 }
 
 

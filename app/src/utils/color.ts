@@ -43,3 +43,40 @@ export function getBgColor(palette: number | Palette, isInverted: boolean, custo
   const colors = resolvePaletteColors(palette, customPalettes);
   return isInverted ? colors[colors.length - 1] : colors[0];
 }
+
+export function generate10ShadePalette(c1: string, c2: string, c3: string): string[] {
+  const hexToRgb = (hex: string): [number, number, number] => [
+    parseInt(hex.slice(1, 3), 16),
+    parseInt(hex.slice(3, 5), 16),
+    parseInt(hex.slice(5, 7), 16)
+  ];
+
+  const rgbToHex = (r: number, g: number, b: number): string =>
+    `#${[r, g, b]
+      .map(x => Math.round(Math.max(0, Math.min(255, x))).toString(16).padStart(2, '0'))
+      .join('')}`;
+
+  const blend = (colorA: string, colorB: string, factor: number): string => {
+    const a = hexToRgb(colorA);
+    const b = hexToRgb(colorB);
+    return rgbToHex(
+      a[0] + (b[0] - a[0]) * factor,
+      a[1] + (b[1] - a[1]) * factor,
+      a[2] + (b[2] - a[2]) * factor
+    );
+  };
+
+  return [
+    c1,
+    blend(c1, c2, 0.35),
+    blend(c1, c2, 0.70),
+    c2,
+    blend(c2, c3, 0.35),
+    blend(c2, c3, 0.70),
+    c3,
+    blend(c3, '#ffffff', 0.35),
+    blend(c3, '#ffffff', 0.70),
+    '#ffffff'
+  ];
+}
+

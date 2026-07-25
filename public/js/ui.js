@@ -276,10 +276,25 @@ function setupViewNavigation() {
 let sliderPosition = 0.5; // Starts in dead-center
 let comparePatternIdx = 2; // Default to Dunas (Waves)
 
+function drawCompareMiniCanvases() {
+  const buttons = document.querySelectorAll('.compare-circle-btn');
+  buttons.forEach(btn => {
+    const canvas = btn.querySelector('.compare-mini-canvas');
+    if (canvas) {
+      const ctx = canvas.getContext('2d');
+      const patternIdx = parseInt(btn.getAttribute('data-pattern'));
+      drawPattern(ctx, 40, 40, patternIdx, activePalettes[2], 888, 100, 'crop');
+    }
+  });
+}
+
 function setupComparisonSlider() {
   const wrapper = document.getElementById('sliderWrapper');
   const bar = document.getElementById('sliderBar');
-  const pills = document.querySelectorAll('.compare-pill');
+  const pills = document.querySelectorAll('.compare-circle-btn');
+
+  // Draw mini pattern previews on circular buttons on load
+  drawCompareMiniCanvases();
 
   if (pills) {
     pills.forEach(btn => {
@@ -680,7 +695,6 @@ function renderFullscreenCanvas() {
 }
 
 function openFullscreen(deviceType = 'desktop') {
-  if (window.innerWidth < 768) return; // Disable fullscreen on mobile viewports
   activeFullscreenDevice = deviceType;
   const modal = document.getElementById('fullscreenPreviewModal');
   const title = document.getElementById('fullscreenTitle');

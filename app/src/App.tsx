@@ -221,6 +221,79 @@ function HistoryCardCanvas({ pattern, palette, seed, zoomLevel, fitMode, isInver
   return <canvas ref={canvasRef} width={120} height={80} style={{ width: '120px', height: '80px', display: 'block', borderRadius: '6px' }} />;
 }
 
+// ── FULLSCREEN LIGHTBOX CANVAS COMPONENT ──
+interface FullscreenCanvasProps {
+  pattern: number;
+  palette: Palette;
+  seed: number;
+  zoomLevel: number;
+  fitMode: 'crop' | 'fit';
+  isInverted: boolean;
+  device: 'desktop' | 'tablet' | 'mobile';
+  customPalettes: Palette[];
+}
+
+function FullscreenCanvas({ pattern, palette, seed, zoomLevel, fitMode, isInverted, device, customPalettes }: FullscreenCanvasProps) {
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    let w = 1920, h = 1080;
+    if (device === 'tablet') {
+      w = 1200; h = 1600;
+    } else if (device === 'mobile') {
+      w = 1080; h = 2340;
+    }
+
+    drawPattern(ctx, w, h, PATTERNS[pattern], palette, seed, zoomLevel, fitMode, isInverted, customPalettes);
+    
+    // Clock Overlay logic
+    ctx.save();
+    ctx.fillStyle = '#ffffff';
+    ctx.shadowColor = 'rgba(0,0,0,0.3)';
+    ctx.shadowBlur = 12;
+    ctx.textAlign = 'center';
+    
+    if (device === 'desktop') {
+      ctx.font = '300 68px Lexend, sans-serif';
+      ctx.fillText('10:42', w - 240, 160);
+      ctx.font = '400 24px Lexend, sans-serif';
+      ctx.fillText('Saturday, July 25', w - 240, 210);
+    } else if (device === 'tablet') {
+      ctx.font = '300 88px Lexend, sans-serif';
+      ctx.fillText('10:42', w / 2, 280);
+      ctx.font = '400 26px Lexend, sans-serif';
+      ctx.fillText('Saturday, July 25', w / 2, 340);
+    } else {
+      ctx.font = '300 120px Lexend, sans-serif';
+      ctx.fillText('10:42', w / 2, 420);
+      ctx.font = '400 32px Lexend, sans-serif';
+      ctx.fillText('Saturday, July 25', w / 2, 500);
+    }
+    ctx.restore();
+  }, [pattern, palette, seed, zoomLevel, fitMode, isInverted, device, customPalettes]);
+
+  return (
+    <canvas 
+      ref={canvasRef} 
+      width={device === 'tablet' ? 1200 : device === 'mobile' ? 1080 : 1920} 
+      height={device === 'tablet' ? 1600 : device === 'mobile' ? 2340 : 1080} 
+      style={{ 
+        maxWidth: '100%', 
+        maxHeight: '65vh', 
+        objectFit: 'contain', 
+        borderRadius: '10px', 
+        boxShadow: '0 12px 40px rgba(0, 0, 0, 0.6)', 
+        display: 'block' 
+      }} 
+    />
+  );
+}
+
 // ── MAIN APPLICATION COMPONENT ──
 export default function App() {
   // ── ROUTING & PAGE TRANSITION STATE ──
@@ -238,6 +311,8 @@ export default function App() {
   });
   const [isInverted, setIsInverted] = useState<boolean>(false); // Wallpaper inversion
   const [isLightTheme, setIsLightTheme] = useState<boolean>(true); // App color scheme
+  const [isFullscreenActive, setIsFullscreenActive] = useState<boolean>(false);
+  const [fullscreenDevice, setFullscreenDevice] = useState<'desktop' | 'tablet' | 'mobile'>('desktop');
   
   // Custom palettes loaded from independent StorageService layer
   const [customPalettes, setCustomPalettes] = useState<Palette[]>(() => StorageService.getCustomPalettes());
@@ -1056,12 +1131,37 @@ export default function App() {
                         +
                       </button>
                     </div>
+
+                    <button
+                      className="btn-enlarge-preview"
+                      title="Fullscale Fullscreen Lightbox"
+                      onClick={() => {
+                        setFullscreenDevice(deviceMode === 'all' ? 'desktop' : deviceMode);
+                        setIsFullscreenActive(true);
+                      }}
+                    >
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <polyline points="15 3 21 3 21 9"></polyline>
+                        <polyline points="9 21 3 21 3 15"></polyline>
+                        <line x1="21" y1="3" x2="14" y2="10"></line>
+                        <line x1="3" y1="21" x2="10" y2="14"></line>
+                      </svg>
+                      <span>Fullscreen</span>
+                    </button>
                   </div>
                 </div>
 
                 <div className={`preview-container mode-${deviceMode}`}>
                   {(deviceMode === 'all' || deviceMode === 'desktop') && (
-                    <div className="preview-desktop-wrap device-preview-card">
+                    <div 
+                      className="preview-desktop-wrap device-preview-card"
+                      onClick={() => {
+                        setFullscreenDevice('desktop');
+                        setIsFullscreenActive(true);
+                      }}
+                      title="Click to view Desktop preview in Fullscale"
+                      style={{ cursor: 'pointer' }}
+                    >
                       <div className="preview-label">
                         Desktop 4K
                         <Tooltip text="Draws a standard 16:9 canvas preset matching monitor resolutions.">
@@ -1079,7 +1179,15 @@ export default function App() {
                   {(deviceMode === 'all' || deviceMode === 'tablet' || deviceMode === 'mobile') && (
                     <div className="preview-secondary-group">
                       {(deviceMode === 'all' || deviceMode === 'tablet') && (
-                        <div className="preview-tablet-wrap device-preview-card">
+                        <div 
+                          className="preview-tablet-wrap device-preview-card"
+                          onClick={() => {
+                            setFullscreenDevice('tablet');
+                            setIsFullscreenActive(true);
+                          }}
+                          title="Click to view Tablet preview in Fullscale"
+                          style={{ cursor: 'pointer' }}
+                        >
                           <div className="preview-label">
                             Tablet
                             <Tooltip text="Draws a standard 3:4 canvas preset matching iPad/Tablet aspect ratios.">
@@ -1095,7 +1203,15 @@ export default function App() {
                       )}
 
                       {(deviceMode === 'all' || deviceMode === 'mobile') && (
-                        <div className="preview-mobile-wrap device-preview-card">
+                        <div 
+                          className="preview-mobile-wrap device-preview-card"
+                          onClick={() => {
+                            setFullscreenDevice('mobile');
+                            setIsFullscreenActive(true);
+                          }}
+                          title="Click to view Mobile preview in Fullscale"
+                          style={{ cursor: 'pointer' }}
+                        >
                           <div className="preview-label">
                             Mobile
                             <Tooltip text="Draws a standard 9:19.5 viewport matching newer smartphones.">
@@ -1786,6 +1902,43 @@ export default function App() {
               >
                 {onboardingSlides[onboardingStep].button}
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── INTERACTIVE FULLSCALE LIGHTBOX PREVIEW MODAL ── */}
+      {isFullscreenActive && activePalette && (
+        <div className="modal-overlay active" id="fullscreenPreviewModal" onClick={() => setIsFullscreenActive(false)} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 110 }}>
+          <div className="custom-modal-card-lg fullscreen-card" onClick={(e) => e.stopPropagation()}>
+            <button className="modal-close" onClick={() => setIsFullscreenActive(false)}>&times;</button>
+            <div className="fullscreen-header-bar">
+              <div>
+                <h3>{fullscreenDevice === 'tablet' ? 'Tablet' : fullscreenDevice === 'mobile' ? 'Mobile' : 'Desktop 4K'} Fullscale Preview</h3>
+                <p className="custom-modal-sub">Live interactive preview with zoom and crop controls.</p>
+              </div>
+
+              <div className="fullscreen-toolbar">
+                <button className={`action-pill-btn ${fitMode === 'crop' ? 'active' : ''}`} onClick={() => setFitMode('crop')}>Crop</button>
+                <button className={`action-pill-btn ${fitMode === 'fit' ? 'active' : ''}`} onClick={() => setFitMode('fit')}>Fit</button>
+                <div className="divider-v"></div>
+                <button className="icon-zoom-btn" onClick={() => setZoomLevel(Math.max(40, zoomLevel - 10))}>-</button>
+                <span className="zoom-percentage-badge">{zoomLevel}%</span>
+                <button className="icon-zoom-btn" onClick={() => setZoomLevel(Math.min(180, zoomLevel + 10))}>+</button>
+              </div>
+            </div>
+
+            <div className="fullscreen-view-box">
+              <FullscreenCanvas
+                pattern={currentPattern}
+                palette={activePalette}
+                seed={seed}
+                zoomLevel={zoomLevel}
+                fitMode={fitMode}
+                isInverted={isInverted}
+                device={fullscreenDevice}
+                customPalettes={customPalettes}
+              />
             </div>
           </div>
         </div>
